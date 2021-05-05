@@ -1,0 +1,2 @@
+--DROP TABLE "TripsData"."Things";
+CREATE table "TripsData".Things;
