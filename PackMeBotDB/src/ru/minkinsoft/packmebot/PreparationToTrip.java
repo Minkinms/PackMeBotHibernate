@@ -1,7 +1,10 @@
 package ru.minkinsoft.packmebot;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.*;
+
+import ru.minkinsoft.packmebot.db.DatabaseFacade;
 
 
 public class PreparationToTrip {
@@ -21,6 +24,7 @@ public class PreparationToTrip {
     private StringBuilder requestString = new StringBuilder();      //Строка запроса направления
     private List<String> nextList;                                  //Список для последующего выбора
     private TripsData tripsData;
+    private DatabaseFacade databaseFacade;
     private UserTrip userTrip = new UserTrip();
     private Map<String, Command> commandList = new HashMap<>();         //Список управляющих команд
 
@@ -30,7 +34,8 @@ public class PreparationToTrip {
         this.stage = Stage.DEFAULT_ANSWER;
         String tripHistoryPath = "C:\\Java\\Progwards\\PackMe\\src\\TripHistory.txt";
         fillCommandList();
-        checkConnectDataFile(tripHistoryPath);
+//        checkConnectDataFile(tripHistoryPath);
+        checkConnectDB();
     }
 
     //Этапы (стадии) сборов
@@ -43,6 +48,15 @@ public class PreparationToTrip {
         ERROR                       //Ошибка
     }
 
+    //Метод для проверки соединения с базой данных
+    private void checkConnectDB() {
+        try {
+            databaseFacade= new DatabaseFacade();
+        } catch (SQLException exception) {
+            stage = Stage.ERROR;
+        }
+    }
+    
     //Метод для проверки соединения с файлом данных
     private void checkConnectDataFile(String tripHistoryPath) {
         try {
@@ -351,7 +365,7 @@ public class PreparationToTrip {
 
     //Множество вещей соответствующих запросу
     private void getSelectedThingsList(String requestTrip) {
-        List<Thing> thingsList = tripsData.getTingsList();
+        List<Thing> thingsList = tripsData.getThingsList();
         selectedThingsList.clear();
         for (Thing thing : thingsList) {
             if (thing.tagsMap.containsKey(requestTrip)) {

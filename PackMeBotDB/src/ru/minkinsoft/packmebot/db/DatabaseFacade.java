@@ -12,7 +12,24 @@ public class DatabaseFacade {
 	
 	public static void main(String[] args) {
 //		DatabaseFacade databaseFacade = new DatabaseFacade();
-		System.out.println(getID());
+//		System.out.println(getID());
+	}
+	
+	//Переменные класса
+	 Connection connection;
+	 Statement statement;
+	
+	//Конструктор класса
+	public DatabaseFacade() throws SQLException{
+		getConnectionDB();
+	}
+	
+	private void getConnectionDB() throws SQLException{
+		connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/tripsdata", "postgres", "1234");
+		statement = connection.createStatement();
+//			System.out.println("Java JDBC PostgreSQL Example");
+//			System.out.println("Connected to PostgreSQL dataBase!");
+
 	}
 	
 	public static List<String> getID(){

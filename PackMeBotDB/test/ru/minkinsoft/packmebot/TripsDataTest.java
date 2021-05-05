@@ -115,7 +115,7 @@ public class TripsDataTest {
 		expected.add(new Thing("Визитка", "Свое"));
 		expected.add(new Thing("Соль", "Продукты"));
 		expected.add(new Thing("Стулья", "Инвентарь"));
-		List<Thing> actual = new ArrayList<Thing>(tripsData.getTingsList());
+		List<Thing> actual = new ArrayList<Thing>(tripsData.getThingsList());
 		
 		assertEquals(expected, actual);
 	}

@@ -106,7 +106,7 @@ public class TripsData {
     }
 
     //Метод для получения полного списка вещей с определением количества раз использования в поездках
-    public List<Thing> getTingsList() {
+    public List<Thing> getThingsList() {
         List<Thing> thingsList = new ArrayList<>();
         for (UserTrip userTrip : allTrips) {
             for (Thing thing : userTrip.getUserTripThings()) {
