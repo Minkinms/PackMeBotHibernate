@@ -5,6 +5,7 @@ public class Thing {
     private String nameThing;       //Название вещи
     private String categoryThing;   //Категория
     public Map<String, Integer> tagsMap = new HashMap<>();
+    public int usesCount = 0;
 
     public Thing(String nameThing, String categoryThing) {
         this.nameThing = nameThing;

@@ -210,6 +210,7 @@ public class PreparationToTrip {
         nextList.clear();
         selectedThingsList.clear();
         tookThingsList.clear();
+        userTrip = new UserTrip();
     }
 
     private String doChooseDirectionStage(String text) {	//TODO: Разделить!
@@ -257,11 +258,18 @@ public class PreparationToTrip {
             requestString.append("-");
             userTrip.setCorrection("-");
         }
-        getSelectedThingsList(requestString.toString().toLowerCase());
-        nextList.clear();
-        return "Отлично! Давай перейдем к вещам. Вот мой совет:\n" +
-                getStringFromList(selectedThingsList) + "\n" +
-                showMenu();
+        //getSelectedThingsList(requestString.toString().toLowerCase());
+        try{
+        	getSelectedThingsList(userTrip);
+	        nextList.clear();
+	        return "Отлично! Давай перейдем к вещам. Вот мой совет:\n" +
+	                getStringFromList(selectedThingsList) + "\n" +
+	                showMenu();
+        }catch(SQLException exc) {
+        	return answerErrorDB + exc.getMessage();
+        }catch(NullPointerException exc) {
+        	return answerErrorDB + exc.getMessage();
+        }
     }
 
     //Метод для контроля за сбором
@@ -403,12 +411,41 @@ public class PreparationToTrip {
         });
     }
 
+    //Множество вещей соответствующих запросу
+    private void getSelectedThingsList(UserTrip userTrip) throws SQLException {
+//        List<Thing> thingsList = databaseFacade.getThingsList(userTrip.getDirection(), 
+//        													userTrip.getCorrection());
+        selectedThingsList.clear();
+        selectedThingsList = databaseFacade.getThingsList(userTrip.getDirection(), 
+															userTrip.getCorrection());
+        
+//        for (Thing thing : thingsList) {
+//            if (thing.tagsMap.containsKey(requestTrip)) {
+//                selectedThingsList.add(thing);
+//            }
+//        }
+        selectedThingsList.sort(new Comparator<Thing>() {   //Сортировка по количеству использований в поездках
+            @Override
+            public int compare(Thing o1, Thing o2) {
+                if (!o1.getCategoryThing().equals(o2.getCategoryThing())) {
+                    return o1.getCategoryThing().compareTo(o2.getCategoryThing());
+                } else {
+//                    return o2.tagsMap.get(requestTrip).compareTo(o1.tagsMap.get(requestTrip));
+                    return Integer.compare(o2.usesCount, o1.usesCount);
+                }
+            }
+        });
+    }
+    
+    
+    
     //Перечень начальных вариантов поездок
     //public для использования в классе Test
     public List<String> getDirectionList() throws SQLException, NullPointerException {
         List<String> directionList = new ArrayList<>();
 //        List<Trip> tripList = new ArrayList<>(tripsData.getFrequentTripsList(null, 3));
-        List<Trip> tripList = new ArrayList<>(databaseFacade.getFrequentTripsList(null, 3));
+//        List<Trip> tripList = new ArrayList<>(databaseFacade.getFrequentTripsList(null, 3));
+        List<Trip> tripList = new ArrayList<>(databaseFacade.getFrequentDirection(3));
         tripList.forEach(dt -> {if (!directionList.contains(dt.getDirection())) {
                 				directionList.add(dt.getDirection());
             					}
