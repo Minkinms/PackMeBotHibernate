@@ -27,6 +27,9 @@ public class PreparationToTrip {
     private DatabaseFacade databaseFacade;
     private UserTrip userTrip = new UserTrip();
     private Map<String, Command> commandList = new HashMap<>();         //Список управляющих команд
+    
+    private String answerErrorDB =  "Есть проблема :( Не удалось получить данные. " +
+									"\nРаботаю над исправлением. Приходи через минутку";
 
     //Конструктор класса
     public PreparationToTrip() {
@@ -45,7 +48,7 @@ public class PreparationToTrip {
         CHOOSE_CORRECTION,          //Стадия выбора уточнения по направлению
         CHOOSE_THINGS,              //Стадия выбора вещей для направления
         PACK_CONTROL,               //Стадия контроля сбора вещей
-        ERROR                       //Ошибка
+        ERROR_DB                    //Ошибка работы с базой данных TODO: нужна ли?
     }
 
     //Метод для проверки соединения с базой данных
@@ -53,7 +56,7 @@ public class PreparationToTrip {
         try {
             databaseFacade= new DatabaseFacade();
         } catch (SQLException exception) {
-            stage = Stage.ERROR;
+            stage = Stage.ERROR_DB;
         }
     }
     
@@ -62,7 +65,7 @@ public class PreparationToTrip {
         try {
             tripsData = new TripsData(tripHistoryPath);
         } catch (FileNotFoundException exception) {
-            stage = Stage.ERROR;
+            stage = Stage.ERROR_DB;
         }
     }
 
@@ -105,8 +108,9 @@ public class PreparationToTrip {
             case PACK_CONTROL -> {
                 return control(text);
             }
-            case ERROR -> {
-                return "Извините, но работа временно невозможна :(";
+            case ERROR_DB -> {
+                return "Прошу простить, но что-то не так с базой данных :(" +
+                		"\nПопробуй еще раз через некоторое время.";
             }
             case DEFAULT_ANSWER -> {return "Что-то пошло не так." +
                                     "\nПопробуй воспользоваться командами.\n" + doHelp();}
@@ -185,12 +189,18 @@ public class PreparationToTrip {
 
     private String createNewDirection(){
         toStart();
-        nextList = getDirectionList();
-        stage = Stage.CHOOSE_DEFAULT_DIRECTION;
-        return "Привет! Куда собираешься? Предлагаю популярные варианты:\n" +
-                getStringFromList(nextList) +
-                "\nЕсли варианты не подходят, можешь ввести свой," +
-                "написав \"+Куда\" (Например, \"+ К бабушке\")";
+        try{
+        	nextList = getDirectionList();
+        	stage = Stage.CHOOSE_DEFAULT_DIRECTION;
+	        return "Привет! Куда собираешься? Предлагаю популярные варианты:\n" +
+	                getStringFromList(nextList) +
+	                "\nЕсли варианты не подходят, можешь ввести свой," +
+	                "написав \"+Куда\" (Например, \"+ К бабушке\")";
+        }catch(SQLException exc) {
+        	return answerErrorDB;
+        }catch(NullPointerException exc) {
+        	return answerErrorDB;
+        }
     }
 
     //Сброс всех данных по поездке
@@ -202,14 +212,20 @@ public class PreparationToTrip {
         tookThingsList.clear();
     }
 
-    private String doChooseDirectionStage(String text) {
+    private String doChooseDirectionStage(String text) {	//TODO: Разделить!
         if (nextList.contains(text)) {
-            nextList = getCorrectionList(text);
-            stage = Stage.CHOOSE_CORRECTION;
-            requestString.append(text).append("/");
-            userTrip.setDirection(text);
-            return "Давай уточним. Предлагаю варианты:\n" + getStringFromList(nextList) +
-                    "\nНо можешь ввести свой.";
+        	try {
+	            nextList = getCorrectionList(text);
+	            stage = Stage.CHOOSE_CORRECTION;
+	            requestString.append(text).append("/");
+	            userTrip.setDirection(text);
+	            return "Давай уточним. Предлагаю варианты:\n" + getStringFromList(nextList) +
+	                    "\nНо можешь ввести свой.";
+        	}catch(SQLException exc) {
+            	return answerErrorDB;
+            }catch(NullPointerException exc) {
+            	return answerErrorDB;
+            }
         } else {
             if (!text.isBlank()) {
                 StringBuilder addDirection = new StringBuilder(text);
@@ -228,6 +244,9 @@ public class PreparationToTrip {
         }
         return "Не понял тебя. Попробуй еще раз";
     }
+    
+    
+    
 
     private String doChooseCorrectionStage(String text) {
         stage = Stage.CHOOSE_THINGS;
@@ -386,27 +405,27 @@ public class PreparationToTrip {
 
     //Перечень начальных вариантов поездок
     //public для использования в классе Test
-    public List<String> getDirectionList() {
+    public List<String> getDirectionList() throws SQLException, NullPointerException {
         List<String> directionList = new ArrayList<>();
-        List<Trip> tripList = new ArrayList<>(tripsData.getFrequentTripsList(null, 3));
-        tripList.forEach(dt -> {
-            if (!directionList.contains(dt.getDirection())) {
-                directionList.add(dt.getDirection());
-            }
-        });
+//        List<Trip> tripList = new ArrayList<>(tripsData.getFrequentTripsList(null, 3));
+        List<Trip> tripList = new ArrayList<>(databaseFacade.getFrequentTripsList(null, 3));
+        tripList.forEach(dt -> {if (!directionList.contains(dt.getDirection())) {
+                				directionList.add(dt.getDirection());
+            					}
+        				});
         return directionList;
     }
 
     //Формирование списка уточнений. Зависит от выбранной поездки
     //public для использования в классе Test
-    public List<String> getCorrectionList(String direction) {
+    public List<String> getCorrectionList(String direction) throws SQLException, NullPointerException {
         List<String> correctionList = new ArrayList<>();
-        List<Trip> tripList = new ArrayList<>(tripsData.getFrequentTripsList(direction, 5));
-        tripList.forEach(dt -> {
-            if (!correctionList.contains(dt.getCorrection())) {
-                correctionList.add(dt.getCorrection());
-            }
-        });
+//        List<Trip> tripList = new ArrayList<>(tripsData.getFrequentTripsList(direction, 5));
+        List<Trip> tripList = new ArrayList<>(databaseFacade.getFrequentTripsList(direction, 3));
+        tripList.forEach(dt -> {if (!correctionList.contains(dt.getCorrection())) {
+                				correctionList.add(dt.getCorrection());
+            					}
+        				});
         return correctionList;
     }
 
