@@ -458,7 +458,7 @@ public class PreparationToTrip {
     public List<String> getCorrectionList(String direction) throws SQLException, NullPointerException {
         List<String> correctionList = new ArrayList<>();
 //        List<Trip> tripList = new ArrayList<>(tripsData.getFrequentTripsList(direction, 5));
-        List<Trip> tripList = new ArrayList<>(databaseFacade.getFrequentTripsList(direction, 3));
+        List<Trip> tripList = new ArrayList<>(databaseFacade.getFrequentCorrection(direction, 3));
         tripList.forEach(dt -> {if (!correctionList.contains(dt.getCorrection())) {
                 				correctionList.add(dt.getCorrection());
             					}

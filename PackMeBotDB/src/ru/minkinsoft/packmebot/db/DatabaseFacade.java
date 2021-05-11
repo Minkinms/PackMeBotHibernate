@@ -50,30 +50,21 @@ public class DatabaseFacade {
 	}
 
 	// Метод для получения частых направлений поездок
-	public List<Trip> getFrequentTripsList(String direction, int numberOfFrequentTrips) throws SQLException {
-		List<Trip> frequentTrips = new ArrayList<>();
-		ResultSet resultSet = statement.executeQuery("SELECT * FROM TripsData_sh.result " 
-				+ "INNER JOIN TripsData_sh.trips USING (trips_id) "
-				+ "INNER JOIN TripsData_sh.things USING (things_id)");
+	public List<Trip> getFrequentCorrection(String direction, int numberOfFrequentTrips) throws SQLException {
+		List<Trip> resultList = new ArrayList<>();
+		ResultSet resultSet = statement.executeQuery("SELECT correction FROM TripsData_sh.result " 
+				+ "INNER JOIN TripsData_sh.trips USING (trips_id) " +
+				"WHERE direction = '" + direction + "'");
 		while (resultSet.next()) {
-			String tripDirection = resultSet.getString("direction");
 			String tripCorrection = resultSet.getString("correction");
-			Trip trip = new Trip(tripDirection, tripCorrection);
-			if (direction == null) {
-				addTrip(frequentTrips, trip);
-			} else {
-				if (tripDirection.equals(direction)) {
-					addTrip(frequentTrips, trip);
-				}
-			}
+			Trip trip = new Trip(direction, tripCorrection);
+			addTrip(resultList, trip);
 		}
-
-		frequentTrips.sort((o1, o2) -> Integer.compare(o2.getUseCount(), o1.getUseCount()));
-
-		if (numberOfFrequentTrips > 0 && numberOfFrequentTrips < frequentTrips.size()) {
-			return frequentTrips.subList(0, numberOfFrequentTrips);
+		resultList.sort((o1, o2) -> Integer.compare(o2.getUseCount(), o1.getUseCount()));
+		if (numberOfFrequentTrips > 0 && numberOfFrequentTrips < resultList.size()) {
+			return resultList.subList(0, numberOfFrequentTrips);
 		} else
-			return frequentTrips;
+			return resultList;
 	}
 	
 	public List<Trip> getFrequentDirection(int numberOfFrequentTrips) throws SQLException {
@@ -130,28 +121,6 @@ public class DatabaseFacade {
         	}
         	
         }
-        
-        
-        
-//        for (UserTrip userTrip : allTrips) {
-//            for (Thing thing : userTrip.getUserTripThings()) {
-//                String key = (userTrip.getDirection() + "/" + userTrip.getCorrection()).toLowerCase();
-//                if (thingsList.contains(thing)) {
-//                    Thing extractedThing = thingsList.get(thingsList.indexOf(thing));
-//                    if (extractedThing.tagsMap.containsKey(key)) {
-//                        extractedThing.tagsMap.put(key, extractedThing.tagsMap.get(key) + 1);
-//                    } else {
-//                        extractedThing.tagsMap.put(key, 1);
-//                    }
-//                } else {
-//                    thing.tagsMap.put(key, 1);
-//                    thingsList.add(thing);
-//                }
-//            }
-//        }
-        
-        
-        
         return thingsList;
     }
 	
