@@ -26,6 +26,7 @@ public class PreparationToTrip {
     private TripsData tripsData;
     private DatabaseFacade databaseFacade;
     private UserTrip userTrip;
+    Integer userID;
     private Map<String, Command> commandList = new HashMap<>();         //Список управляющих команд
     
     private String answerErrorDB =  "Есть проблема :( Не удалось получить данные. " +
@@ -39,6 +40,7 @@ public class PreparationToTrip {
         fillCommandList();
 //        checkConnectDataFile(tripHistoryPath);
         checkConnectDB();
+        this.userID = userID;
         userTrip = new UserTrip(userID);
     }
 
@@ -211,7 +213,8 @@ public class PreparationToTrip {
         nextList.clear();
         selectedThingsList.clear();
         tookThingsList.clear();
-        userTrip = new UserTrip();
+        userTrip = new UserTrip(this.userID);
+        										//TODO: Создавать новый Statement
     }
 
     private String doChooseDirectionStage(String text) {	//TODO: Разделить!
@@ -335,7 +338,7 @@ public class PreparationToTrip {
     }
 
     //Метод для добавления вещи в список
-    private boolean addThing(String text) {
+    private boolean addThing(String text) {				
         StringBuilder str = new StringBuilder(text);
         str.deleteCharAt(0);
         StringTokenizer tokenizer = new StringTokenizer(str.toString().trim(), "(");

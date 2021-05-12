@@ -24,7 +24,27 @@ import ru.minkinsoft.packmebot.UserTrip;
 public class DatabaseFacade {
 
 	public static void main(String[] args) {
-//		DatabaseFacade databaseFacade = new DatabaseFacade();
+		System.out.println("Hello");
+		try{
+			DatabaseFacade databaseFacade = new DatabaseFacade();
+			int i = databaseFacade.getNextID("user_trips_id", "TripsData_sh.result");
+			System.out.println("Следующий индекс " + i);
+			
+			int i1 = databaseFacade.findTripsID("Командировка", "Другой город");
+			System.out.println("Первый запрос, индекс " + i1);
+			
+			int i2 = databaseFacade.findTripsID("Командировка", "Санкт-Петербург");
+			System.out.println("Второй запрос, индекс " + i2);
+			
+			Thing thing1 = new Thing("Соль", "Продукты");
+			Thing thing2 = new Thing("Зонт", "Инвентарь");
+			
+			System.out.println("Вещь из списка " + databaseFacade.findThingsID(thing1));
+			System.out.println("Новая вещь " + databaseFacade.findThingsID(thing2));
+			
+		}catch(SQLException exc) {
+			System.out.println(exc.getMessage());
+		}
 //		System.out.println(getID());
 	}
 
@@ -55,19 +75,109 @@ public class DatabaseFacade {
 	}
 	
 	private void closeConnectionDB() {
+		//TODO: Закрывать statement
 		
+	}
+	
+
+	public int getNextID(String column, String table) throws SQLException {
+		ResultSet resultSet = statement.executeQuery(
+    						"SELECT MAX(" + column + ") " +
+    						"FROM " + table);
+		int nextID = 0;
+		while (resultSet.next()) {
+			nextID = resultSet.getInt("max") + 1;
+		}
+    	resultSet.close();
+    	return nextID;
+	}
+	
+	public int findTripsID(String direction, String correction) throws SQLException {
+		ResultSet resultSet = statement.executeQuery(
+							"SELECT trips_id FROM TripsData_sh.trips " + 
+		 					"WHERE direction = '" + direction + "' " +
+		 					"AND correction = '" + correction + "'");
+		Integer tripsID = null;
+		while (resultSet.next()) {
+			tripsID = resultSet.getInt("trips_id");
+		}
+		
+		if(tripsID != null) {
+			return tripsID;
+		}else {
+			int newTripID = getNextID("trips_id", "TripsData_sh.trips");
+			writeTrip(direction, correction, newTripID);
+			return newTripID;
+		}
+		
+	}
+	
+	public void writeTrip(String direction, String correction, int newTripID) throws SQLException {
+		PreparedStatement prepareStatement = connection.prepareStatement(
+				  "INSERT INTO TripsData_sh.trips (trips_id, direction, correction) VALUES (?, ?, ?)");
+		prepareStatement.setInt(1, newTripID); 
+		prepareStatement.setString(2, direction); 
+		prepareStatement.setString(3, correction); 
+		prepareStatement.executeUpdate(); 
+		prepareStatement.close();
+	}
+	
+	
+	
+	
+	
+	public int findThingsID(Thing UserThing) throws SQLException {
+		ResultSet resultSet = statement.executeQuery(
+							"SELECT things_id FROM TripsData_sh.things " + 
+		 					"WHERE thing_name = '" + UserThing.getNameThing() + "' " +
+		 					"AND thing_category = '" + UserThing.getCategoryThing() + "'");
+		Integer thingsID = null;
+		while (resultSet.next()) {
+			thingsID = resultSet.getInt("things_id");
+		}
+		
+		if(thingsID != null) {
+			return thingsID;
+		}else {
+			int newThingID = getNextID("trips_id", "TripsData_sh.trips");
+			writeThing(UserThing, newThingID);
+			return newThingID;
+		}
+		
+	}
+	
+	public void writeThing(Thing thing, int newThingID) throws SQLException {
+		PreparedStatement prepareStatement = connection.prepareStatement(
+				  "INSERT INTO TripsData_sh.things (things_id, thing_name, thing_category) VALUES (?, ?, ?)");
+		prepareStatement.setInt(1, newThingID); 
+		prepareStatement.setString(2, thing.getNameThing()); 
+		prepareStatement.setString(3, thing.getCategoryThing()); 
+		prepareStatement.executeUpdate(); 
+		prepareStatement.close();
+	}
+	
+
+	public List<Integer> getThingsID(List<Thing> UserTripThings) throws SQLException {
+		List<Integer> resultList = new ArrayList<Integer>();
+		if(!UserTripThings.isEmpty()) {
+    		for(Thing UserThing	: UserTripThings) {
+    			resultList.add(findThingsID(UserThing));
+    		}
+    	}
+		return resultList;
 	}
 	
     //Метод для записи строки поездки в файл
     public void writeTrip(UserTrip userTrip) throws SQLException {
-    	int userTripsID;
-    	int userNumber;
-    	int tripsID;
-    	int thingsID;
+    	int userTripsID = getNextID("user_trips_id", "TripsData_sh.result");
+    	int userID = userTrip.getUserID();
+    	int tripsID = findTripsID(userTrip.getDirection(), userTrip.getCorrection());
+    	List<Integer> thingsID = new ArrayList<Integer>(getThingsID(userTrip.getUserTripThings()));
     	
-    	ResultSet resultSet = statement.executeQuery(
-    						"SELECT MAX(user_trips_id) FROM TripsData_sh.result");
-    	userTripsID = resultSet.getInt("user_trips_id") + 1;
+    	
+    	
+    	
+    	
     	
 		/*
 		 * PreparedStatement stmt = connection.prepareStatement(
