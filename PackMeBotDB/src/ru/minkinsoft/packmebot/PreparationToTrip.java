@@ -25,20 +25,21 @@ public class PreparationToTrip {
     private List<String> nextList;                                  //Список для последующего выбора
     private TripsData tripsData;
     private DatabaseFacade databaseFacade;
-    private UserTrip userTrip = new UserTrip();
+    private UserTrip userTrip;
     private Map<String, Command> commandList = new HashMap<>();         //Список управляющих команд
     
     private String answerErrorDB =  "Есть проблема :( Не удалось получить данные. " +
 									"\nРаботаю над исправлением. Приходи через минутку";
 
     //Конструктор класса
-    public PreparationToTrip() {
+    public PreparationToTrip(Integer userID) {
         this.nextList = new ArrayList<>();
         this.stage = Stage.DEFAULT_ANSWER;
-        String tripHistoryPath = "C:\\Java\\Progwards\\PackMe\\src\\TripHistory.txt";
+//        String tripHistoryPath = "C:\\Java\\Progwards\\PackMe\\src\\TripHistory.txt";
         fillCommandList();
 //        checkConnectDataFile(tripHistoryPath);
         checkConnectDB();
+        userTrip = new UserTrip(userID);
     }
 
     //Этапы (стадии) сборов
@@ -266,9 +267,9 @@ public class PreparationToTrip {
 	                getStringFromList(selectedThingsList) + "\n" +
 	                showMenu();
         }catch(SQLException exc) {
-        	return answerErrorDB + exc.getMessage();
+        	return answerErrorDB;			// + exc.getMessage();
         }catch(NullPointerException exc) {
-        	return answerErrorDB + exc.getMessage();
+        	return answerErrorDB;			// + exc.getMessage();
         }
     }
 

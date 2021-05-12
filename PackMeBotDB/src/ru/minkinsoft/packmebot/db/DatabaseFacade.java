@@ -1,10 +1,15 @@
 package ru.minkinsoft.packmebot.db;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -28,12 +33,12 @@ public class DatabaseFacade {
 	Statement statement;
 //	ResultSet resultSet;
 	
-	private Comparator<Integer> categoryComparator = new Comparator<>() {   //TODO: Здесь или отдельный файл?
-        @Override
-        public int compare(Integer o1, Integer o2) {
-            return Integer.compare(o1, o2);
-        }
-    };
+//	private Comparator<Thing> categoryComparator = new Comparator<>() {   //TODO: Здесь или отдельный файл?
+//        @Override
+//        public int compare(Thing o1, Thing o2) {
+//            return Integer.compare(o1.usesCount, o2.usesCount);
+//        }
+//    };
 	
 	
 
@@ -48,6 +53,63 @@ public class DatabaseFacade {
 		connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/tripsdata", "postgres", "1234");
 		statement = connection.createStatement();
 	}
+	
+	private void closeConnectionDB() {
+		
+	}
+	
+    //Метод для записи строки поездки в файл
+    public void writeTrip(UserTrip userTrip) throws SQLException {
+    	int userTripsID;
+    	int userNumber;
+    	int tripsID;
+    	int thingsID;
+    	
+    	ResultSet resultSet = statement.executeQuery(
+    						"SELECT MAX(user_trips_id) FROM TripsData_sh.result");
+    	userTripsID = resultSet.getInt("user_trips_id") + 1;
+    	
+		/*
+		 * PreparedStatement stmt = connection.prepareStatement(
+		 * "INSERT INTO JC_CONTACT (FIRST_NAME, LAST_NAME, PHONE, EMAIL) VALUES (?, ?, ?, ?)"
+		 * ); "INSERT INTO TripsData_sh.result (trips_id, direction,correction)" +
+		 * "VALUES (0, 'Командировка', 'Москва')");
+		 */
+		/*
+		 * stmt.setString(1, firstName); 
+		 * stmt.setString(2, lastName); 
+		 * stmt.setString(3, phone); 
+		 * stmt.setString(4, email); 
+		 * stmt.executeUpdate(); 
+		 * stmt.close();
+		 */
+    	
+		
+		/*
+		 * File tripHistoryFile = new File(tripHistoryPath); 
+		 * FileWriter tripWriter = new FileWriter(tripHistoryFile, true); 
+		 * StringBuilder stringToWrite = new StringBuilder(); 
+		 * stringToWrite.append("\ntr").append(",");
+		 * stringToWrite.append(userTrip.getDirection()).append("/");
+		 * stringToWrite.append(userTrip.getCorrection()).append(","); //Дата записи не
+		 * используется в работе. Сохранение необходимо для анализа истории при
+		 * необходимости
+		 * stringToWrite.append(dateTimeFormatter.format(LocalDateTime.now())).append(","); 
+		 * for (Thing thing : userTrip.getUserTripThings()) 
+		 * {
+		 * 	stringToWrite.append(thing.toString()).append(","); 
+		 * }
+		 * 	stringToWrite.deleteCharAt(stringToWrite.length() - 1);
+		 * 	tripWriter.write(stringToWrite.toString()); 
+		 * 	tripWriter.close();
+		 */
+		 
+    }
+	
+	
+	
+	
+	
 
 	// Метод для получения частых направлений поездок
 	public List<Trip> getFrequentCorrection(String direction, int numberOfFrequentTrips) throws SQLException {
@@ -104,7 +166,6 @@ public class DatabaseFacade {
 				+ "INNER JOIN TripsData_sh.trips USING (trips_id) "
 				+ "INNER JOIN TripsData_sh.things USING (things_id)"
         		+ "WHERE direction = '" + direction + "' AND correction = '" + correction + "'");
-
         while (resultSet.next()) {
         	String category;
         	if(resultSet.getString("thing_category") != null) {
@@ -119,37 +180,34 @@ public class DatabaseFacade {
         		thing.usesCount = 1;
         		thingsList.add(thing);
         	}
-        	
         }
+//        thingsList.sort((o1, o2) -> Integer.compare(o2.usesCount, o1.usesCount));
         return thingsList;
     }
 	
 	
 	
-	public static List<String> getID() {
-		List<String> result = new ArrayList<>();
-
-		try (Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/tripsdata",
-				"postgres", "1234")) {
-			System.out.println("Java JDBC PostgreSQL Example");
-			System.out.println("Connected to PostgreSQL dataBase!");
-
-			Statement statement = connection.createStatement();
-//			ResultSet resultSet = statement.executeQuery("SELECT * FROM TripsData_sh.result");
-			ResultSet resultSet = statement.executeQuery(
-					"SELECT * FROM TripsData_sh.result " + "INNER JOIN TripsData_sh.trips USING (trips_id) "
-							+ "INNER JOIN TripsData_sh.things USING (things_id)");
-			while (resultSet.next()) {
-				result.add(resultSet.getString("thing_category"));
-			}
-
-		} catch (SQLException e) {
-			System.out.println("Connection failure");
-			e.printStackTrace();
-		}
-
-		return result;
-
-	}
+	/*
+	 * public static List<String> getID() { List<String> result = new ArrayList<>();
+	 * 
+	 * try (Connection connection =
+	 * DriverManager.getConnection("jdbc:postgresql://localhost:5432/tripsdata",
+	 * "postgres", "1234")) { System.out.println("Java JDBC PostgreSQL Example");
+	 * System.out.println("Connected to PostgreSQL dataBase!");
+	 * 
+	 * Statement statement = connection.createStatement(); // ResultSet resultSet =
+	 * statement.executeQuery("SELECT * FROM TripsData_sh.result"); ResultSet
+	 * resultSet = statement.executeQuery( "SELECT * FROM TripsData_sh.result " +
+	 * "INNER JOIN TripsData_sh.trips USING (trips_id) " +
+	 * "INNER JOIN TripsData_sh.things USING (things_id)"); while (resultSet.next())
+	 * { result.add(resultSet.getString("thing_category")); }
+	 * 
+	 * } catch (SQLException e) { System.out.println("Connection failure");
+	 * e.printStackTrace(); }
+	 * 
+	 * return result;
+	 * 
+	 * }
+	 */
 
 }
