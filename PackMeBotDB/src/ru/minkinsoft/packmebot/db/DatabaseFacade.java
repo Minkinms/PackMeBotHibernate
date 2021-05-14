@@ -63,22 +63,26 @@ public class DatabaseFacade {
 	
 
 	// Конструктор класса
-	public DatabaseFacade() throws SQLException {
-		getConnectionDB();
+	public DatabaseFacade() {
+		//getConnectionDB();
 		
 	}
 
 	// Метод для соединения с базой данных
-	private void getConnectionDB() throws SQLException {
+	public void getConnectionDB() throws SQLException {
 		connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/tripsdata", "postgres", "1234");
 		statement = connection.createStatement();
 	}
 	
-	private void closeConnectionDB() {
-		//TODO: Закрывать statement
-		
+	public void closeConnectionDB() throws SQLException {
+		statement.close();
+		connection.close();
 	}
 	
+	//To use at test
+	public void deleteRow(String SQLStatement) throws SQLException {
+		statement.executeUpdate(SQLStatement);
+	}
 
 	public int getNextID(String column, String table) throws SQLException {
 		ResultSet resultSet = statement.executeQuery(
@@ -92,7 +96,7 @@ public class DatabaseFacade {
     	return nextID;
 	}
 	
-	public int findTripsID(String direction, String correction) throws SQLException {
+	private int findTripsID(String direction, String correction) throws SQLException {
 		ResultSet resultSet = statement.executeQuery(
 							"SELECT trips_id FROM TripsData_sh.trips " + 
 		 					"WHERE direction = '" + direction + "' " +
@@ -106,13 +110,13 @@ public class DatabaseFacade {
 			return tripsID;
 		}else {
 			int newTripID = getNextID("trips_id", "TripsData_sh.trips");
-			writeTrip(direction, correction, newTripID);
+			writeNewTripToDB(direction, correction, newTripID);
 			return newTripID;
 		}
 		
 	}
 	
-	public void writeTrip(String direction, String correction, int newTripID) throws SQLException {
+	private void writeNewTripToDB(String direction, String correction, int newTripID) throws SQLException {
 		PreparedStatement prepareStatement = connection.prepareStatement(
 				  "INSERT INTO TripsData_sh.trips (trips_id, direction, correction) VALUES (?, ?, ?)");
 		prepareStatement.setInt(1, newTripID); 
@@ -122,11 +126,7 @@ public class DatabaseFacade {
 		prepareStatement.close();
 	}
 	
-	
-	
-	
-	
-	public int findThingsID(Thing UserThing) throws SQLException {
+	private int findThingsID(Thing UserThing) throws SQLException {
 		ResultSet resultSet = statement.executeQuery(
 							"SELECT things_id FROM TripsData_sh.things " + 
 		 					"WHERE thing_name = '" + UserThing.getNameThing() + "' " +
@@ -140,13 +140,13 @@ public class DatabaseFacade {
 			return thingsID;
 		}else {
 			int newThingID = getNextID("trips_id", "TripsData_sh.trips");
-			writeThing(UserThing, newThingID);
+			writeNewThingToDB(UserThing, newThingID);
 			return newThingID;
 		}
 		
 	}
 	
-	public void writeThing(Thing thing, int newThingID) throws SQLException {
+	private void writeNewThingToDB(Thing thing, int newThingID) throws SQLException {
 		PreparedStatement prepareStatement = connection.prepareStatement(
 				  "INSERT INTO TripsData_sh.things (things_id, thing_name, thing_category) VALUES (?, ?, ?)");
 		prepareStatement.setInt(1, newThingID); 
@@ -157,7 +157,7 @@ public class DatabaseFacade {
 	}
 	
 
-	public List<Integer> getThingsID(List<Thing> UserTripThings) throws SQLException {
+	private List<Integer> getThingsID(List<Thing> UserTripThings) throws SQLException {
 		List<Integer> resultList = new ArrayList<Integer>();
 		if(!UserTripThings.isEmpty()) {
     		for(Thing UserThing	: UserTripThings) {
@@ -167,58 +167,29 @@ public class DatabaseFacade {
 		return resultList;
 	}
 	
+	
+	private void writeTripToDB(int userTripsID, int userID, int tripsID, int thingsID) throws SQLException {
+		PreparedStatement prepareStatement = connection.prepareStatement(
+					"INSERT INTO TripsData_sh.result (user_trips_id, user_id, trips_id, things_id) " +
+					"VALUES (?, ?, ?, ?)");
+		prepareStatement.setInt(1, userTripsID); 
+		prepareStatement.setInt(2, userID); 
+		prepareStatement.setInt(3, tripsID); 
+		prepareStatement.setInt(4, thingsID);
+		prepareStatement.executeUpdate(); 
+		prepareStatement.close();
+	}
+	
     //Метод для записи строки поездки в файл
-    public void writeTrip(UserTrip userTrip) throws SQLException {
+    public void writeUserTrip(UserTrip userTrip) throws SQLException {				//TODO:Вернуть true для теста?
     	int userTripsID = getNextID("user_trips_id", "TripsData_sh.result");
     	int userID = userTrip.getUserID();
     	int tripsID = findTripsID(userTrip.getDirection(), userTrip.getCorrection());
     	List<Integer> thingsID = new ArrayList<Integer>(getThingsID(userTrip.getUserTripThings()));
-    	
-    	
-    	
-    	
-    	
-    	
-		/*
-		 * PreparedStatement stmt = connection.prepareStatement(
-		 * "INSERT INTO JC_CONTACT (FIRST_NAME, LAST_NAME, PHONE, EMAIL) VALUES (?, ?, ?, ?)"
-		 * ); "INSERT INTO TripsData_sh.result (trips_id, direction,correction)" +
-		 * "VALUES (0, 'Командировка', 'Москва')");
-		 */
-		/*
-		 * stmt.setString(1, firstName); 
-		 * stmt.setString(2, lastName); 
-		 * stmt.setString(3, phone); 
-		 * stmt.setString(4, email); 
-		 * stmt.executeUpdate(); 
-		 * stmt.close();
-		 */
-    	
-		
-		/*
-		 * File tripHistoryFile = new File(tripHistoryPath); 
-		 * FileWriter tripWriter = new FileWriter(tripHistoryFile, true); 
-		 * StringBuilder stringToWrite = new StringBuilder(); 
-		 * stringToWrite.append("\ntr").append(",");
-		 * stringToWrite.append(userTrip.getDirection()).append("/");
-		 * stringToWrite.append(userTrip.getCorrection()).append(","); //Дата записи не
-		 * используется в работе. Сохранение необходимо для анализа истории при
-		 * необходимости
-		 * stringToWrite.append(dateTimeFormatter.format(LocalDateTime.now())).append(","); 
-		 * for (Thing thing : userTrip.getUserTripThings()) 
-		 * {
-		 * 	stringToWrite.append(thing.toString()).append(","); 
-		 * }
-		 * 	stringToWrite.deleteCharAt(stringToWrite.length() - 1);
-		 * 	tripWriter.write(stringToWrite.toString()); 
-		 * 	tripWriter.close();
-		 */
-		 
+    	for(int i = 0; i < thingsID.size(); i++) {
+    		writeTripToDB(userTripsID, userID, tripsID, thingsID.get(i));
+    	}
     }
-	
-	
-	
-	
 	
 
 	// Метод для получения частых направлений поездок
@@ -295,29 +266,5 @@ public class DatabaseFacade {
         return thingsList;
     }
 	
-	
-	
-	/*
-	 * public static List<String> getID() { List<String> result = new ArrayList<>();
-	 * 
-	 * try (Connection connection =
-	 * DriverManager.getConnection("jdbc:postgresql://localhost:5432/tripsdata",
-	 * "postgres", "1234")) { System.out.println("Java JDBC PostgreSQL Example");
-	 * System.out.println("Connected to PostgreSQL dataBase!");
-	 * 
-	 * Statement statement = connection.createStatement(); // ResultSet resultSet =
-	 * statement.executeQuery("SELECT * FROM TripsData_sh.result"); ResultSet
-	 * resultSet = statement.executeQuery( "SELECT * FROM TripsData_sh.result " +
-	 * "INNER JOIN TripsData_sh.trips USING (trips_id) " +
-	 * "INNER JOIN TripsData_sh.things USING (things_id)"); while (resultSet.next())
-	 * { result.add(resultSet.getString("thing_category")); }
-	 * 
-	 * } catch (SQLException e) { System.out.println("Connection failure");
-	 * e.printStackTrace(); }
-	 * 
-	 * return result;
-	 * 
-	 * }
-	 */
 
 }
