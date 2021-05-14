@@ -10,8 +10,6 @@ public class UserTrip extends Trip {
     public UserTrip() {
     }
 
-    
-    
     public UserTrip(Integer userID) {
 		super();
 		this.userID = userID;

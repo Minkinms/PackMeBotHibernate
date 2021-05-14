@@ -1,6 +1,5 @@
 package ru.minkinsoft.packmebot;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+
 import java.sql.SQLException;
 import java.util.*;
 
@@ -10,38 +9,29 @@ import ru.minkinsoft.packmebot.db.DatabaseFacade;
 public class PreparationToTrip {
 
     //Переменные класса
+	Integer userID;													//ID пользователя из Telegram
+	private DatabaseFacade databaseFacade = new DatabaseFacade();	//Класс для работы с БД
+	private Stage stage;                                            //Этапы работы с ботом
+	private Map<String, Command> commandList = new HashMap<>();     //Список управляющих команд
     private List<Thing> selectedThingsList = new ArrayList<>();     //Список выбранных вещей
     private List<Thing> tookThingsList = new ArrayList<>();         //Список взятых вещей
-    //Пока компаратор отдельный, на случай если понадобится делать разные
-    private Comparator<Thing> categoryComparator = new Comparator<>() {   //TODO: Здесь или отдельный файл?
+    private List<String> nextList = new ArrayList<>();              //Список для последующего выбора
+    private UserTrip userTrip;										//Класс описания поездки
+
+    private String answerErrorDB =  "Есть проблема :( Не удалось получить данные. " +
+									"\nРаботаю над исправлением. Приходи через минутку";
+    private Comparator<Thing> categoryComparator = new Comparator<>() {   
         @Override
         public int compare(Thing o1, Thing o2) {
             return o1.getCategoryThing().compareTo(o2.getCategoryThing());
         }
     };
 
-    private Stage stage;                                             //Этапы работы с ботом
-//    private StringBuilder requestString = new StringBuilder();      //Строка запроса направления
-    private List<String> nextList = new ArrayList<>();                                  //Список для последующего выбора
-//    private TripsData tripsData;
-    private DatabaseFacade databaseFacade = new DatabaseFacade();
-    private UserTrip userTrip;
-    Integer userID;
-    private Map<String, Command> commandList = new HashMap<>();         //Список управляющих команд
-    
-    private String answerErrorDB =  "Есть проблема :( Не удалось получить данные. " +
-									"\nРаботаю над исправлением. Приходи через минутку";
-
     //Конструктор класса
     public PreparationToTrip(Integer userID) {
-//        this.nextList = new ArrayList<>();
-        this.stage = Stage.DEFAULT_ANSWER;
-//        String tripHistoryPath = "C:\\Java\\Progwards\\PackMe\\src\\TripHistory.txt";
+    	this.userID = userID;
+        toStart();
         fillCommandList();
-//        checkConnectDataFile(tripHistoryPath);
-//        checkConnectDB();
-        this.userID = userID;
-        userTrip = new UserTrip(userID);
     }
 
     //Этапы (стадии) сборов
@@ -51,7 +41,7 @@ public class PreparationToTrip {
         CHOOSE_CORRECTION,          //Стадия выбора уточнения по направлению
         CHOOSE_THINGS,              //Стадия выбора вещей для направления
         PACK_CONTROL,               //Стадия контроля сбора вещей
-        ERROR_DB                    //Ошибка работы с базой данных TODO: нужна ли?
+        ERROR_DB                    //Ошибка работы с базой данных 
     }
 
     //Метод для проверки соединения с базой данных
@@ -63,24 +53,16 @@ public class PreparationToTrip {
         }
     }
     
-    //Метод для проверки соединения с файлом данных
-//    private void checkConnectDataFile(String tripHistoryPath) {
-//        try {
-//            tripsData = new TripsData(tripHistoryPath);
-//        } catch (FileNotFoundException exception) {
-//            stage = Stage.ERROR_DB;
-//        }
-//    }
-
+    //Метод для определения команд для работы с ботом
     private void fillCommandList() {
-        commandList.put("/start",new Command(this::doStart));
-        commandList.put("/stop",new Command(this::doStop));
-        commandList.put("/new",new Command(this::createNewDirection));
-        commandList.put("/help",new Command(this::doHelp));
+        commandList.put("/start", new Command(this::doStart));
+        commandList.put("/stop",  new Command(this::doStop));
+        commandList.put("/new",   new Command(this::createNewDirection));
+        commandList.put("/help",  new Command(this::doHelp));
         commandList.put("/things",new Command(this::goToChooseThings));
-        commandList.put("/list",new Command(this::showSelectedThingsList));
-        commandList.put("/pack",new Command(this::goToPack));
-        commandList.put("/menu",new Command(this::showMenu));
+        commandList.put("/list",  new Command(this::showSelectedThingsList));
+        commandList.put("/pack",  new Command(this::goToPack));
+        commandList.put("/menu",  new Command(this::showMenu));
     }
 
     //Метод для организации взаимодействия с классом бота
@@ -97,6 +79,7 @@ public class PreparationToTrip {
         return getAnswerFromStage(text);
     }
 
+	//Метод формирования ответа в зависимости от стадии
     private String getAnswerFromStage(String text) {
         switch (stage) {
             case CHOOSE_DEFAULT_DIRECTION -> {
@@ -118,7 +101,6 @@ public class PreparationToTrip {
             case DEFAULT_ANSWER -> {return "Что-то пошло не так." +
                                     "\nПопробуй воспользоваться командами.\n" + doHelp();}
         }
-//        }
         return "Не понял тебя. Попробуй еще раз или используй команды:" +
                 doHelp();
     }
@@ -159,10 +141,9 @@ public class PreparationToTrip {
     }
 
     private String showSelectedThingsList(){
-//    	if(selectedThingsList != null && requestString.length() > 0){
         if(selectedThingsList != null && 
         	userTrip.getDirection() != null && 
-        	userTrip.getCorrection() != null){
+        		userTrip.getCorrection() != null){
             return "Осталось сложить:\n" + getStringFromList(selectedThingsList) +
                     "\nСложено:\n" + getStringFromList(tookThingsList);
         }else {
@@ -213,20 +194,17 @@ public class PreparationToTrip {
     //Сброс всех данных по поездке
     private void toStart() {
         stage = Stage.DEFAULT_ANSWER;
-//        requestString = new StringBuilder();    //TODO: или удалять символы???
         nextList.clear();
         selectedThingsList.clear();
         tookThingsList.clear();
         userTrip = new UserTrip(this.userID);
-        										//TODO: Создавать новый Statement
     }
 
-    private String doChooseDirectionStage(String text) {	//TODO: Разделить!
+    private String doChooseDirectionStage(String text) {	
         if (nextList.contains(text)) {
         	try {
 	            nextList = getCorrectionList(text);
 	            stage = Stage.CHOOSE_CORRECTION;
-//	            requestString.append(text).append("/");
 	            userTrip.setDirection(text);
 	            return "Давай уточним. Предлагаю варианты:\n" + getStringFromList(nextList) +
 	                    "\nНо можешь ввести свой.";
@@ -238,11 +216,10 @@ public class PreparationToTrip {
         } else {
             if (!text.isBlank()) {
                 StringBuilder addDirection = new StringBuilder(text);
-                if (addDirection.charAt(0) == "+".charAt(0)) {        //TODO: Такой вариант сравнения???
+                if (addDirection.charAt(0) == "+".charAt(0)) {  
                     addDirection.deleteCharAt(0);
                     String direction = addDirection.toString().trim();
                     if (!nextList.contains(direction)) {
-//                        requestString.append(direction).append("/");
                         stage = Stage.CHOOSE_CORRECTION;
                         userTrip.setDirection(direction);
                         return "Давай уточним. Например: для \"Командировка\" можно написать \"Россия\"\n" +
@@ -253,20 +230,14 @@ public class PreparationToTrip {
         }
         return "Не понял тебя. Попробуй еще раз";
     }
-    
-    
-    
 
     private String doChooseCorrectionStage(String text) {
         stage = Stage.CHOOSE_THINGS;
         if (!text.isBlank()) {
-//            requestString.append(text);
             userTrip.setCorrection(text);
         } else {
-//            requestString.append("-");
             userTrip.setCorrection("-");
         }
-        //getSelectedThingsList(requestString.toString().toLowerCase());
         try{
         	getSelectedThingsList(userTrip);
 	        nextList.clear();
@@ -274,9 +245,9 @@ public class PreparationToTrip {
 	                getStringFromList(selectedThingsList) + "\n" +
 	                showMenu();
         }catch(SQLException exc) {
-        	return answerErrorDB;			// + exc.getMessage();
+        	return answerErrorDB;			
         }catch(NullPointerException exc) {
-        	return answerErrorDB;			// + exc.getMessage();
+        	return answerErrorDB;			
         }
     }
 
@@ -301,7 +272,6 @@ public class PreparationToTrip {
 
     private String writeUserTrip(){
             try {
-//                tripsData.writeTrip(userTrip);
             	databaseFacade.writeUserTrip(userTrip);
             	databaseFacade.closeConnectionDB();
             	toStart();
@@ -324,7 +294,7 @@ public class PreparationToTrip {
 
     //Метод для проверки специальных знаков и изменения списка вещей
     private String checkMenuSymbol(String text) {
-        String menuSymbol = String.valueOf(text.charAt(0));     //TODO: использовать equals или ==
+        String menuSymbol = String.valueOf(text.charAt(0));     
         if (menuSymbol.equals("+")) {
             if (addThing(text)) {
                 return "Добавлено.\nМожно продолжить добавлять или убирать (подсказки /menu).\n" +
@@ -400,61 +370,26 @@ public class PreparationToTrip {
         return Integer.parseInt(result.toString());
     }
 
-    //Множество вещей соответствующих запросу
-//    private void getSelectedThingsList(String requestTrip) {
-//        List<Thing> thingsList = tripsData.getThingsList();
-//        selectedThingsList.clear();
-//        for (Thing thing : thingsList) {
-//            if (thing.tagsMap.containsKey(requestTrip)) {
-//                selectedThingsList.add(thing);
-//            }
-//        }
-//        selectedThingsList.sort(new Comparator<Thing>() {   //Сортировка по количеству использований в поездках
-//            @Override
-//            public int compare(Thing o1, Thing o2) {
-//                if (!o1.getCategoryThing().equals(o2.getCategoryThing())) {
-//                    return o1.getCategoryThing().compareTo(o2.getCategoryThing());
-//                } else {
-//                    return o2.tagsMap.get(requestTrip).compareTo(o1.tagsMap.get(requestTrip));
-//                }
-//            }
-//        });
-//    }
-
-    //Множество вещей соответствующих запросу
+    //Список вещей соответствующих запросу
     private void getSelectedThingsList(UserTrip userTrip) throws SQLException {
-//        List<Thing> thingsList = databaseFacade.getThingsList(userTrip.getDirection(), 
-//        													userTrip.getCorrection());
         selectedThingsList.clear();
         selectedThingsList = databaseFacade.getThingsList(userTrip.getDirection(), 
 															userTrip.getCorrection());
-        
-//        for (Thing thing : thingsList) {
-//            if (thing.tagsMap.containsKey(requestTrip)) {
-//                selectedThingsList.add(thing);
-//            }
-//        }
         selectedThingsList.sort(new Comparator<Thing>() {   //Сортировка по количеству использований в поездках
             @Override
             public int compare(Thing o1, Thing o2) {
                 if (!o1.getCategoryThing().equals(o2.getCategoryThing())) {
                     return o1.getCategoryThing().compareTo(o2.getCategoryThing());
                 } else {
-//                    return o2.tagsMap.get(requestTrip).compareTo(o1.tagsMap.get(requestTrip));
                     return Integer.compare(o2.usesCount, o1.usesCount);
                 }
             }
         });
     }
     
-    
-    
-    //Перечень начальных вариантов поездок
-    //public для использования в классе Test
+    //Список начальных вариантов поездок
     private List<String> getDirectionList() throws SQLException, NullPointerException {
         List<String> directionList = new ArrayList<>();
-//        List<Trip> tripList = new ArrayList<>(tripsData.getFrequentTripsList(null, 3));
-//        List<Trip> tripList = new ArrayList<>(databaseFacade.getFrequentTripsList(null, 3));
         List<Trip> tripList = new ArrayList<>(databaseFacade.getFrequentDirection(3));
         tripList.forEach(dt -> {if (!directionList.contains(dt.getDirection())) {
                 				directionList.add(dt.getDirection());
@@ -464,10 +399,8 @@ public class PreparationToTrip {
     }
 
     //Формирование списка уточнений. Зависит от выбранной поездки
-    //public для использования в классе Test
     private List<String> getCorrectionList(String direction) throws SQLException, NullPointerException {
         List<String> correctionList = new ArrayList<>();
-//        List<Trip> tripList = new ArrayList<>(tripsData.getFrequentTripsList(direction, 5));
         List<Trip> tripList = new ArrayList<>(databaseFacade.getFrequentCorrection(direction, 3));
         tripList.forEach(dt -> {if (!correctionList.contains(dt.getCorrection())) {
                 				correctionList.add(dt.getCorrection());

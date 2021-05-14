@@ -1,21 +1,13 @@
 package ru.minkinsoft.packmebot.db;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 import ru.minkinsoft.packmebot.Thing;
 import ru.minkinsoft.packmebot.Trip;
@@ -23,54 +15,18 @@ import ru.minkinsoft.packmebot.UserTrip;
 
 public class DatabaseFacade {
 
-	public static void main(String[] args) {
-		System.out.println("Hello");
-		try{
-			DatabaseFacade databaseFacade = new DatabaseFacade();
-			int i = databaseFacade.getNextID("user_trips_id", "TripsData_sh.result");
-			System.out.println("Следующий индекс " + i);
-			
-			int i1 = databaseFacade.findTripsID("Командировка", "Другой город");
-			System.out.println("Первый запрос, индекс " + i1);
-			
-			int i2 = databaseFacade.findTripsID("Командировка", "Санкт-Петербург");
-			System.out.println("Второй запрос, индекс " + i2);
-			
-			Thing thing1 = new Thing("Соль", "Продукты");
-			Thing thing2 = new Thing("Зонт", "Инвентарь");
-			
-			System.out.println("Вещь из списка " + databaseFacade.findThingsID(thing1));
-			System.out.println("Новая вещь " + databaseFacade.findThingsID(thing2));
-			
-		}catch(SQLException exc) {
-			System.out.println(exc.getMessage());
-		}
-//		System.out.println(getID());
-	}
-
 	// Переменные класса
 	Connection connection;
 	Statement statement;
-//	ResultSet resultSet;
-	
-//	private Comparator<Thing> categoryComparator = new Comparator<>() {   //TODO: Здесь или отдельный файл?
-//        @Override
-//        public int compare(Thing o1, Thing o2) {
-//            return Integer.compare(o1.usesCount, o2.usesCount);
-//        }
-//    };
-	
-	
 
 	// Конструктор класса
 	public DatabaseFacade() {
-		//getConnectionDB();
-		
 	}
 
 	// Метод для соединения с базой данных
 	public void getConnectionDB() throws SQLException {
-		connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/tripsdata", "postgres", "1234");
+		connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/tripsdata", 
+												 "postgres", "1234");
 		statement = connection.createStatement();
 	}
 	
@@ -181,7 +137,7 @@ public class DatabaseFacade {
 	}
 	
     //Метод для записи строки поездки в файл
-    public void writeUserTrip(UserTrip userTrip) throws SQLException {				//TODO:Вернуть true для теста?
+    public void writeUserTrip(UserTrip userTrip) throws SQLException {	
     	int userTripsID = getNextID("user_trips_id", "TripsData_sh.result");
     	int userID = userTrip.getUserID();
     	int tripsID = findTripsID(userTrip.getDirection(), userTrip.getCorrection());
@@ -241,7 +197,6 @@ public class DatabaseFacade {
     //Метод для получения полного списка вещей с определением количества раз использования в поездках
     public List<Thing> getThingsList(String direction, String correction) throws SQLException {
         List<Thing> thingsList = new ArrayList<>();
-//        String key = (direction + "/" + correction).toLowerCase();
         ResultSet resultSet = statement.executeQuery(
         		"SELECT thing_name, thing_category FROM TripsData_sh.result " 
 				+ "INNER JOIN TripsData_sh.trips USING (trips_id) "
@@ -262,7 +217,6 @@ public class DatabaseFacade {
         		thingsList.add(thing);
         	}
         }
-//        thingsList.sort((o1, o2) -> Integer.compare(o2.usesCount, o1.usesCount));
         return thingsList;
     }
 	

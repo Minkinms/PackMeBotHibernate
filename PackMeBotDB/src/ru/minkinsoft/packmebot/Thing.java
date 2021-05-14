@@ -4,7 +4,7 @@ import java.util.*;
 public class Thing {
     private String nameThing;       //Название вещи
     private String categoryThing;   //Категория
-    public Map<String, Integer> tagsMap = new HashMap<>();
+    public Map<String, Integer> tagsMap = new HashMap<>(); //TODO создать методы доступа 
     public int usesCount = 0;
 
     public Thing(String nameThing, String categoryThing) {
