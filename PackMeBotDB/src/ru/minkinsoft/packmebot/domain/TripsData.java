@@ -1,4 +1,4 @@
-package ru.minkinsoft.packmebot;
+package ru.minkinsoft.packmebot.domain;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;

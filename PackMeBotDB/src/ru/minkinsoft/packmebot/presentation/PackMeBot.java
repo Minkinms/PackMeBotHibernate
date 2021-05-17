@@ -1,5 +1,7 @@
-package ru.minkinsoft.packmebot;
+package ru.minkinsoft.packmebot.presentation;
 
+import ru.minkinsoft.packmebot.domain.PreparationToTrip;
+import ru.minkinsoft.packmebot.domain.TestClass;
 import ru.progwards.java1.telegrambot.ProgwardsTelegramBot;
 import org.telegram.telegrambots.ApiContextInitializer;
 import java.util.*;

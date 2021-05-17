@@ -1,9 +1,9 @@
-package ru.minkinsoft.packmebot;
+package ru.minkinsoft.packmebot.domain;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Random;
 
-import ru.minkinsoft.packmebot.PreparationToTrip.Stage;
+import ru.minkinsoft.packmebot.domain.PreparationToTrip.Stage;
 
 public class TestClass {
 //    PreparationToTrip pmt = new PreparationToTrip();

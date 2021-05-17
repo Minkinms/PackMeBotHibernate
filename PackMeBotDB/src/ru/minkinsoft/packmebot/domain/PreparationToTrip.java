@@ -1,9 +1,9 @@
-package ru.minkinsoft.packmebot;
+package ru.minkinsoft.packmebot.domain;
 
 import java.sql.SQLException;
 import java.util.*;
 
-import ru.minkinsoft.packmebot.db.DatabaseFacade;
+import ru.minkinsoft.packmebot.datasource.DatabaseFacade;
 
 
 public class PreparationToTrip {

@@ -1,4 +1,4 @@
-package ru.minkinsoft.packmebot.db;
+package ru.minkinsoft.packmebot.datasource;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -9,9 +9,9 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import ru.minkinsoft.packmebot.Thing;
-import ru.minkinsoft.packmebot.Trip;
-import ru.minkinsoft.packmebot.UserTrip;
+import ru.minkinsoft.packmebot.domain.Thing;
+import ru.minkinsoft.packmebot.domain.Trip;
+import ru.minkinsoft.packmebot.domain.UserTrip;
 
 public class DatabaseFacade {
 

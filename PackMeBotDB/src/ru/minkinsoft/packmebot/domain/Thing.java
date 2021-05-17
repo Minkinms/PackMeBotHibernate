@@ -1,4 +1,4 @@
-package ru.minkinsoft.packmebot;
+package ru.minkinsoft.packmebot.domain;
 import java.util.*;
 
 public class Thing {
