@@ -1,16 +1,19 @@
 package ru.minkinsoft.packmebot.domain;
 
-import java.sql.SQLException;
+//import java.sql.SQLException;
 import java.util.*;
 
-import ru.minkinsoft.packmebot.datasource.DatabaseFacade;
+import ru.minkinsoft.packmebot.datasource.DAOException;
+//import ru.minkinsoft.packmebot.datasource.DatabaseFacade;
+import ru.minkinsoft.packmebot.datasource.UserTripsData;
 
 
 public class PreparationToTrip {
 
     //Переменные класса
 	Integer userID;													//ID пользователя из Telegram
-	private DatabaseFacade databaseFacade = new DatabaseFacade();	//Класс для работы с БД
+//	private DatabaseFacade databaseFacade = new DatabaseFacade();	//Класс для работы с БД
+	private UserTripsData utd = new UserTripsData();
 	private Stage stage;                                            //Этапы работы с ботом
 	private Map<String, Command> commandList = new HashMap<>();     //Список управляющих команд
     private List<Thing> selectedThingsList = new ArrayList<>();     //Список выбранных вещей
@@ -45,13 +48,13 @@ public class PreparationToTrip {
     }
 
     //Метод для проверки соединения с базой данных
-    private void checkConnectDB() {
-        try {
-            databaseFacade.getConnectionDB();
-        } catch (SQLException exception) {
-            stage = Stage.ERROR_DB;
-        }
-    }
+//    private void checkConnectDB() {
+//        try {
+//            databaseFacade.getConnectionDB();
+//        } catch (SQLException exception) {
+//            stage = Stage.ERROR_DB;
+//        }
+//    }
     
     //Метод для определения команд для работы с ботом
     private void fillCommandList() {
@@ -177,16 +180,15 @@ public class PreparationToTrip {
     private String createNewDirection(){
         toStart();
         try{
-        	checkConnectDB();
+//        	checkConnectDB();
         	nextList = getDirectionList();
         	stage = Stage.CHOOSE_DEFAULT_DIRECTION;
 	        return "Привет! Куда собираешься? Предлагаю популярные варианты:\n" +
 	                getStringFromList(nextList) +
 	                "\nЕсли варианты не подходят, можешь ввести свой," +
 	                "написав \"+Куда\" (Например, \"+ К бабушке\")";
-        }catch(SQLException exc) {
-        	return answerErrorDB;
-        }catch(NullPointerException exc) {
+        }catch(DAOException | NullPointerException  exc) {
+        	System.out.println(exc.getMessage());
         	return answerErrorDB;
         }
     }
@@ -208,10 +210,9 @@ public class PreparationToTrip {
 	            userTrip.setDirection(text);
 	            return "Давай уточним. Предлагаю варианты:\n" + getStringFromList(nextList) +
 	                    "\nНо можешь ввести свой.";
-        	}catch(SQLException exc) {
-            	return answerErrorDB;
-            }catch(NullPointerException exc) {
-            	return answerErrorDB;
+        	}catch(DAOException | NullPointerException exc) {
+        		System.out.println(exc.getMessage());
+        		return answerErrorDB;
             }
         } else {
             if (!text.isBlank()) {
@@ -244,9 +245,8 @@ public class PreparationToTrip {
 	        return "Отлично! Давай перейдем к вещам. Вот мой совет:\n" +
 	                getStringFromList(selectedThingsList) + "\n" +
 	                showMenu();
-        }catch(SQLException exc) {
-        	return answerErrorDB;			
-        }catch(NullPointerException exc) {
+        }catch(DAOException | NullPointerException exc) {		//TODO Проверить на null
+        	System.out.println(exc.getMessage());
         	return answerErrorDB;			
         }
     }
@@ -272,10 +272,13 @@ public class PreparationToTrip {
 
     private String writeUserTrip(){
             try {
-            	databaseFacade.writeUserTrip(userTrip);
-            	databaseFacade.closeConnectionDB();
+//            	databaseFacade.writeUserTrip(userTrip);
+//            	databaseFacade.closeConnectionDB();
+            	utd.addNewUserTrip(userTrip);
+            	
             	toStart();
-            } catch (SQLException exc) {
+            } catch (DAOException exc) {
+            	System.out.println(exc.getMessage());
                 return "Всё собрано! Хорошей поездки!\n" +
                         "Произошла ошибка записи\n" +
                         "Чтобы начать новую, напиши /new";
@@ -371,11 +374,13 @@ public class PreparationToTrip {
     }
 
     //Список вещей соответствующих запросу
-    private void getSelectedThingsList(UserTrip userTrip) throws SQLException {
+    private void getSelectedThingsList(UserTrip userTrip) throws DAOException {
         selectedThingsList.clear();
-        selectedThingsList = databaseFacade.getThingsList(userTrip.getDirection(), 
-															userTrip.getCorrection());
-        selectedThingsList.sort(new Comparator<Thing>() {   //Сортировка по количеству использований в поездках
+//        selectedThingsList = databaseFacade.getThingsList(userTrip.getDirection(), 
+//															userTrip.getCorrection());
+        selectedThingsList = utd.getThingsList(userTrip.getDirection(),
+        										userTrip.getCorrection());
+        selectedThingsList.sort(new Comparator<Thing>() {   //Сортировка по количеству использования в поездках
             @Override
             public int compare(Thing o1, Thing o2) {
                 if (!o1.getCategoryThing().equals(o2.getCategoryThing())) {
@@ -388,9 +393,10 @@ public class PreparationToTrip {
     }
     
     //Список начальных вариантов поездок
-    private List<String> getDirectionList() throws SQLException, NullPointerException {
+    private List<String> getDirectionList() throws DAOException, NullPointerException {
         List<String> directionList = new ArrayList<>();
-        List<Trip> tripList = new ArrayList<>(databaseFacade.getFrequentDirection(3));
+//        List<Trip> tripList = new ArrayList<>(databaseFacade.getFrequentDirection(3));
+        List<Trip> tripList = new ArrayList<>(utd.getFrequentDirection(3));
         tripList.forEach(dt -> {if (!directionList.contains(dt.getDirection())) {
                 				directionList.add(dt.getDirection());
             					}
@@ -399,9 +405,10 @@ public class PreparationToTrip {
     }
 
     //Формирование списка уточнений. Зависит от выбранной поездки
-    private List<String> getCorrectionList(String direction) throws SQLException, NullPointerException {
+    private List<String> getCorrectionList(String direction) throws DAOException, NullPointerException {
         List<String> correctionList = new ArrayList<>();
-        List<Trip> tripList = new ArrayList<>(databaseFacade.getFrequentCorrection(direction, 3));
+//        List<Trip> tripList = new ArrayList<>(databaseFacade.getFrequentCorrection(direction, 3));
+        List<Trip> tripList = new ArrayList<>(utd.getFrequentCorrection(direction, 3));
         tripList.forEach(dt -> {if (!correctionList.contains(dt.getCorrection())) {
                 				correctionList.add(dt.getCorrection());
             					}

@@ -18,7 +18,7 @@ public class ThingsData implements ThingsDao {
 	//Возвращается id сохраненной вещи
 	@Override
 	public int addNewThing(Thing thing) throws DAOException {
-		String sql = "INSERT INTO TripsData_sh.things (things_id, thing_name, thing_category) " +
+		String sql = "INSERT INTO TripsData_sh.things (thing_id, name, category) " +
 					"VALUES (?, ?, ?)";
 		int newID = getLastID() + 1;
 		try(Connection connection = dbConn.getConnectionDB();
@@ -47,13 +47,16 @@ public class ThingsData implements ThingsDao {
 		return null;
 	}
 	
-	//Получить вещь из базы по имени и категории	
+	//Получить ID вещи из базы по имени и категории.	
+	//В случае отсутствия вернуть null.
 	@Override
 	public Integer findThingID(String name, String category) throws DAOException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	//Получить ID вещи из базы.
+	//В случае отсутствия вернуть null.
 	@Override
 	public Integer findThingID(Thing thing) throws DAOException {
 		Integer thingID = null;
@@ -65,8 +68,9 @@ public class ThingsData implements ThingsDao {
 			Statement statement = connection.createStatement(); 
 			ResultSet resultSet = statement.executeQuery(sql)){
 			
-			resultSet.next();
-			thingID = resultSet.getInt("thing_id");
+			while(resultSet.next()) {
+				thingID = resultSet.getInt("thing_id");
+			}
 			return thingID;
 			
 		} catch (SQLException e) {
@@ -101,8 +105,10 @@ public class ThingsData implements ThingsDao {
 			Statement statement = connection.createStatement(); 
 			ResultSet resultSet = statement.executeQuery(sql)){
 			
-			resultSet.next();
-			lastID = resultSet.getInt("max");
+			while(resultSet.next()) {
+				lastID = resultSet.getInt("max");
+			}
+			
 		} catch (SQLException e) {
 			throw new DAOException("Ошибка в ThingsData.getLastID()", e);
 		}

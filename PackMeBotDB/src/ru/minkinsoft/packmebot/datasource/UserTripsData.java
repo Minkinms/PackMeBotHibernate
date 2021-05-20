@@ -1,10 +1,12 @@
 package ru.minkinsoft.packmebot.datasource;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import ru.minkinsoft.packmebot.domain.Thing;
@@ -15,19 +17,28 @@ public class UserTripsData implements UserTripsDao {
 	
 	public static void main(String[] args) {
 		UserTripsData utd = new UserTripsData();
+		TripsData td = new TripsData();
 		
-		try {
-			System.out.println(utd.getFrequentDirection(5));
-			System.out.println(utd.getFrequentCorrection("Командировка", 5));
-			System.out.println(utd.getThingsList("Командировка", "Другой город"));
-			System.out.println(utd.getLastID());
-		} catch (DAOException e) {
-			System.out.println(e.getMessage());
-			System.out.println("Подавленных исключений " + e.getSuppressed().length);
-			for(Throwable t : e.getSuppressed()) {
-				System.out.println(t.getMessage());
-			}
-		}
+		List<Integer> thingsID = new ArrayList<Integer>(Arrays.asList(0, 2));
+		
+//		try {
+////			System.out.println(utd.getFrequentDirection(5));
+////			System.out.println(utd.getFrequentCorrection("Командировка", 5));
+////			System.out.println(utd.getThingsList("Командировка", "Другой город"));
+////			System.out.println(utd.getLastID());
+////			System.out.println(td.findTripID("Командировка", "Другой город"));
+////			System.out.println(td.findTripID("Командировка", "Другой"));
+//			System.out.println("Last ID: " + utd.getLastID());
+//			int i = utd.getLastID() + 1;
+//			utd.addRows(i, 12345, 0, thingsID);
+//			System.out.println("Last ID: " + utd.getLastID());
+//		} catch (DAOException e) {
+//			System.out.println(e.getMessage());
+//			System.out.println("Подавленных исключений " + e.getSuppressed().length);
+//			for(Throwable t : e.getSuppressed()) {
+//				System.out.println(t.getMessage());
+//			}
+//		}
 	}
 	
 	
@@ -39,20 +50,30 @@ public class UserTripsData implements UserTripsDao {
 		TripsData tripsData = new TripsData();
 		ThingsData thingsData = new ThingsData();
 
-    	int userTripID = getLastID();
+    	int userTripID = getLastID() + 1;
     	int userID = userTrip.getUserID();
-    	Integer tripID = tripsData.findTripID(userTrip.getDirection(), 
+    	Integer tripID = tripsData.findOrWrite(userTrip.getDirection(), 
     											userTrip.getCorrection());
     	List<Integer> thingsID = thingsData.getThingsID(userTrip.getUserTripThings());
-    	
-    	if(tripID == null) {
-    		tripID = tripsData.addNewTrip(userTrip.getDirection(), userTrip.getCorrection());
+    	addRows(userTripID, userID, tripID, thingsID);
+	}
+	
+	//Метод для записи строк в таблицу базы
+	private void addRows(int userTripID, int userID, int tripID, List<Integer> thingsID) throws DAOException {
+		String sql = "INSERT INTO TripsData_sh.user_trips (user_trip_id, user_id, trip_id, thing_id) " +
+    					"VALUES (?, ?, ?, ?)";
+		try(Connection connection = dbConn.getConnectionDB();
+    		PreparedStatement pStatement = connection.prepareStatement(sql)){
+    		pStatement.setInt(1, userTripID); 
+    		pStatement.setInt(2, userID); 
+    		pStatement.setInt(3, tripID); 
+	    	for(int i = 0; i < thingsID.size(); i++) {
+	    		pStatement.setInt(4, thingsID.get(i));
+	    		pStatement.executeUpdate(); 
+	    	}	
+    	}catch (SQLException e) {
+    			throw new DAOException("Ошибка в ThingsData.addRows()", e);
     	}
-    	
-//    	for(int i = 0; i < thingsID.size(); i++) {
-//    		writeTripToDB(userTripID, userID, tripsID, thingsID.get(i));
-//    	}
-		
 	}
 
 	@Override
@@ -71,8 +92,9 @@ public class UserTripsData implements UserTripsDao {
 			Statement statement = connection.createStatement(); 
 			ResultSet resultSet = statement.executeQuery(sql)){
 			
-			resultSet.next();
-			lastID = resultSet.getInt("max");
+			while(resultSet.next()) {
+				lastID = resultSet.getInt("max");
+			}
 		} catch (SQLException e) {
 			throw new DAOException("Ошибка в UserTripsData.getLastID()", e);
 		}
