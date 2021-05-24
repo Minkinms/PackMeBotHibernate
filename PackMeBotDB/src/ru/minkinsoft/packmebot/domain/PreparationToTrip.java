@@ -1,10 +1,8 @@
 package ru.minkinsoft.packmebot.domain;
 
-//import java.sql.SQLException;
 import java.util.*;
 
 import ru.minkinsoft.packmebot.datasource.DAOException;
-//import ru.minkinsoft.packmebot.datasource.DatabaseFacade;
 import ru.minkinsoft.packmebot.datasource.UserTripsData;
 
 
@@ -12,8 +10,7 @@ public class PreparationToTrip {
 
     //Переменные класса
 	Integer userID;													//ID пользователя из Telegram
-//	private DatabaseFacade databaseFacade = new DatabaseFacade();	//Класс для работы с БД
-	private UserTripsData utd = new UserTripsData();
+	private UserTripsData utd = new UserTripsData();				//Класс для работы с БД
 	private Stage stage;                                            //Этапы работы с ботом
 	private Map<String, Command> commandList = new HashMap<>();     //Список управляющих команд
     private List<Thing> selectedThingsList = new ArrayList<>();     //Список выбранных вещей
@@ -47,15 +44,6 @@ public class PreparationToTrip {
         ERROR_DB                    //Ошибка работы с базой данных 
     }
 
-    //Метод для проверки соединения с базой данных
-//    private void checkConnectDB() {
-//        try {
-//            databaseFacade.getConnectionDB();
-//        } catch (SQLException exception) {
-//            stage = Stage.ERROR_DB;
-//        }
-//    }
-    
     //Метод для определения команд для работы с ботом
     private void fillCommandList() {
         commandList.put("/start", new Command(this::doStart));
@@ -272,10 +260,7 @@ public class PreparationToTrip {
 
     private String writeUserTrip(){
             try {
-//            	databaseFacade.writeUserTrip(userTrip);
-//            	databaseFacade.closeConnectionDB();
             	utd.addNewUserTrip(userTrip);
-            	
             	toStart();
             } catch (DAOException exc) {
             	System.out.println(exc.getMessage());
@@ -376,8 +361,6 @@ public class PreparationToTrip {
     //Список вещей соответствующих запросу
     private void getSelectedThingsList(UserTrip userTrip) throws DAOException {
         selectedThingsList.clear();
-//        selectedThingsList = databaseFacade.getThingsList(userTrip.getDirection(), 
-//															userTrip.getCorrection());
         selectedThingsList = utd.getThingsList(userTrip.getDirection(),
         										userTrip.getCorrection());
         selectedThingsList.sort(new Comparator<Thing>() {   //Сортировка по количеству использования в поездках
@@ -395,7 +378,6 @@ public class PreparationToTrip {
     //Список начальных вариантов поездок
     private List<String> getDirectionList() throws DAOException {
         List<String> directionList = new ArrayList<>();
-//        List<Trip> tripList = new ArrayList<>(databaseFacade.getFrequentDirection(3));
         List<Trip> tripList = new ArrayList<>(utd.getFrequentDirection(3));
         tripList.forEach(dt -> {if (!directionList.contains(dt.getDirection())) {
                 				directionList.add(dt.getDirection());
@@ -407,7 +389,6 @@ public class PreparationToTrip {
     //Формирование списка уточнений. Зависит от выбранной поездки
     private List<String> getCorrectionList(String direction) throws DAOException {
         List<String> correctionList = new ArrayList<>();
-//        List<Trip> tripList = new ArrayList<>(databaseFacade.getFrequentCorrection(direction, 3));
         List<Trip> tripList = new ArrayList<>(utd.getFrequentCorrection(direction, 3));
         tripList.forEach(dt -> {if (!correctionList.contains(dt.getCorrection())) {
                 				correctionList.add(dt.getCorrection());

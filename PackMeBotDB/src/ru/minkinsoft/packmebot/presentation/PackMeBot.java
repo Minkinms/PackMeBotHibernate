@@ -1,7 +1,6 @@
 package ru.minkinsoft.packmebot.presentation;
 
 import ru.minkinsoft.packmebot.domain.PreparationToTrip;
-import ru.minkinsoft.packmebot.domain.TestClass;
 import ru.progwards.java1.telegrambot.ProgwardsTelegramBot;
 import org.telegram.telegrambots.ApiContextInitializer;
 import java.util.*;
@@ -29,20 +28,15 @@ public class PackMeBot extends ProgwardsTelegramBot {
 		return users.get(userid).getBotAnswer(text.trim());
 	}
 
-	
-	//TODO Определиться с классом
+	//Метод для тестирования без использования telegram
 	void test() {
 		Scanner in = new Scanner(System.in);
 		String input;
 		TUser user = new TUser();
-		TestClass testClass = new TestClass();
-
-//		do {
-//			input = in.nextLine();
-//			System.out.println(processMessage(user.userID, input));
-//		} while (!input.equals("стоп"));
-//        }
-
+		do {
+			input = in.nextLine();
+			System.out.println(processMessage(user.userID, input));
+		} while (!input.equals("стоп"));
 		in.close();
 	}
 
