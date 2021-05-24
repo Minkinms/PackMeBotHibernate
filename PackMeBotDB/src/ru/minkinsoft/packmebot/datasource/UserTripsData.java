@@ -6,7 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import ru.minkinsoft.packmebot.domain.Thing;
@@ -15,34 +14,13 @@ import ru.minkinsoft.packmebot.domain.UserTrip;
 
 public class UserTripsData implements UserTripsDao {
 	
-	public static void main(String[] args) {
-		UserTripsData utd = new UserTripsData();
-		TripsData td = new TripsData();
-		
-		List<Integer> thingsID = new ArrayList<Integer>(Arrays.asList(0, 2));
-		
-//		try {
-////			System.out.println(utd.getFrequentDirection(5));
-////			System.out.println(utd.getFrequentCorrection("Командировка", 5));
-////			System.out.println(utd.getThingsList("Командировка", "Другой город"));
-////			System.out.println(utd.getLastID());
-////			System.out.println(td.findTripID("Командировка", "Другой город"));
-////			System.out.println(td.findTripID("Командировка", "Другой"));
-//			System.out.println("Last ID: " + utd.getLastID());
-//			int i = utd.getLastID() + 1;
-//			utd.addRows(i, 12345, 0, thingsID);
-//			System.out.println("Last ID: " + utd.getLastID());
-//		} catch (DAOException e) {
-//			System.out.println(e.getMessage());
-//			System.out.println("Подавленных исключений " + e.getSuppressed().length);
-//			for(Throwable t : e.getSuppressed()) {
-//				System.out.println(t.getMessage());
-//			}
-//		}
+	//Переменные класса
+	DBConnection dbConn;
+
+	//Конструктор класса
+	public UserTripsData() {
+		dbConn = new DBConnection();
 	}
-	
-	
-	DBConnection dbConn = new DBConnection();
 
 	//Записать новую поездку в базу
 	@Override
@@ -76,6 +54,7 @@ public class UserTripsData implements UserTripsDao {
     	}
 	}
 
+	//Пока не нужен в работе
 	@Override
 	public void deleteUserTrip(int userTripId) {
 		// TODO Auto-generated method stub

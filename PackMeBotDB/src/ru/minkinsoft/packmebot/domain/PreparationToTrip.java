@@ -187,7 +187,7 @@ public class PreparationToTrip {
 	                getStringFromList(nextList) +
 	                "\nЕсли варианты не подходят, можешь ввести свой," +
 	                "написав \"+Куда\" (Например, \"+ К бабушке\")";
-        }catch(DAOException | NullPointerException  exc) {
+        }catch(DAOException  exc) {
         	System.out.println(exc.getMessage());
         	return answerErrorDB;
         }
@@ -210,7 +210,7 @@ public class PreparationToTrip {
 	            userTrip.setDirection(text);
 	            return "Давай уточним. Предлагаю варианты:\n" + getStringFromList(nextList) +
 	                    "\nНо можешь ввести свой.";
-        	}catch(DAOException | NullPointerException exc) {
+        	}catch(DAOException exc) {
         		System.out.println(exc.getMessage());
         		return answerErrorDB;
             }
@@ -237,7 +237,7 @@ public class PreparationToTrip {
         if (!text.isBlank()) {
             userTrip.setCorrection(text);
         } else {
-            userTrip.setCorrection("-");
+            userTrip.setCorrection("нет");
         }
         try{
         	getSelectedThingsList(userTrip);
@@ -245,7 +245,7 @@ public class PreparationToTrip {
 	        return "Отлично! Давай перейдем к вещам. Вот мой совет:\n" +
 	                getStringFromList(selectedThingsList) + "\n" +
 	                showMenu();
-        }catch(DAOException | NullPointerException exc) {		//TODO Проверить на null
+        }catch(DAOException exc) {		
         	System.out.println(exc.getMessage());
         	return answerErrorDB;			
         }
@@ -320,7 +320,7 @@ public class PreparationToTrip {
     private boolean addThing(String text) {				
         StringBuilder str = new StringBuilder(text);
         str.deleteCharAt(0);
-        StringTokenizer tokenizer = new StringTokenizer(str.toString().trim(), "(");
+        StringTokenizer tokenizer = new StringTokenizer(str.toString().trim(), "()");
         List<String> textParts = new ArrayList<>();
         while (tokenizer.hasMoreTokens()) {
             textParts.add(tokenizer.nextToken());
@@ -331,7 +331,7 @@ public class PreparationToTrip {
             return true;
         } else {
             if (textParts.size() == 1) {
-                selectedThingsList.add(new Thing(textParts.get(0).trim(), "без категории"));
+                selectedThingsList.add(new Thing(textParts.get(0).trim(), "нет"));
                 selectedThingsList.sort(categoryComparator);
                 return true;
             }
@@ -393,7 +393,7 @@ public class PreparationToTrip {
     }
     
     //Список начальных вариантов поездок
-    private List<String> getDirectionList() throws DAOException, NullPointerException {
+    private List<String> getDirectionList() throws DAOException {
         List<String> directionList = new ArrayList<>();
 //        List<Trip> tripList = new ArrayList<>(databaseFacade.getFrequentDirection(3));
         List<Trip> tripList = new ArrayList<>(utd.getFrequentDirection(3));
@@ -405,7 +405,7 @@ public class PreparationToTrip {
     }
 
     //Формирование списка уточнений. Зависит от выбранной поездки
-    private List<String> getCorrectionList(String direction) throws DAOException, NullPointerException {
+    private List<String> getCorrectionList(String direction) throws DAOException {
         List<String> correctionList = new ArrayList<>();
 //        List<Trip> tripList = new ArrayList<>(databaseFacade.getFrequentCorrection(direction, 3));
         List<Trip> tripList = new ArrayList<>(utd.getFrequentCorrection(direction, 3));
@@ -431,13 +431,7 @@ public class PreparationToTrip {
         } else return "Список пуст";
     }
 
-    //Метод для автотеста							TODO Нужен ли?
-    public List<Thing> readSelectedThingsList() {
-        return selectedThingsList;
-    }
-
-
-    //Класс для обработки команд
+    //Класс для подготовки команд
     class Command {
         private Answer answer;
 

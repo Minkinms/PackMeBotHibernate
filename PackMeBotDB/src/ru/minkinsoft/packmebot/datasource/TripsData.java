@@ -15,7 +15,7 @@ public class TripsData implements TripsDao {
 	//Возвращается id сохраненной поездки
 	@Override
 	public Integer addNewTrip(String direction, String correction) throws DAOException {
-		String sql = "INSERT INTO TripsData_sh.trips (trips_id, direction, correction) " +
+		String sql = "INSERT INTO TripsData_sh.trips (trip_id, direction, correction) " +
 						"VALUES (?, ?, ?)";
 		int newID = getLastID() + 1;
 		try(Connection connection = dbConn.getConnectionDB();
@@ -32,18 +32,21 @@ public class TripsData implements TripsDao {
 		}
 	}
 
+	//Пока не нужен в работе
 	@Override
 	public Integer addNewTrip(Trip trip) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	//Пока не нужен в работе
 	@Override
 	public void deleteTrip(int tripId) {
 		// TODO Auto-generated method stub
 
 	}
 
+	//Пока не нужен в работе
 	@Override
 	public Trip findById(int tripId) {
 		// TODO Auto-generated method stub

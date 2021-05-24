@@ -35,18 +35,21 @@ public class ThingsData implements ThingsDao {
 		}
 	}
 
+	//Пока не нужен в работе
 	@Override
 	public void deleteThing(int thingId) {
 		// TODO Auto-generated method stub
 
 	}
 
+	//Пока не нужен в работе
 	@Override
 	public Thing findById(int thingId) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 	
+	//Пока не нужен в работе
 	//Получить ID вещи из базы по имени и категории.	
 	//В случае отсутствия вернуть null.
 	@Override
