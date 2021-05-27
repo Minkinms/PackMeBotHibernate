@@ -378,7 +378,7 @@ public class PreparationToTrip {
     //Список начальных вариантов поездок
     private List<String> getDirectionList() throws DAOException {
         List<String> directionList = new ArrayList<>();
-        List<Trip> tripList = new ArrayList<>(utd.getFrequentDirection(3));
+        List<Trip> tripList = new ArrayList<>(utd.getFrequentDirection(10));
         tripList.forEach(dt -> {if (!directionList.contains(dt.getDirection())) {
                 				directionList.add(dt.getDirection());
             					}
@@ -389,7 +389,7 @@ public class PreparationToTrip {
     //Формирование списка уточнений. Зависит от выбранной поездки
     private List<String> getCorrectionList(String direction) throws DAOException {
         List<String> correctionList = new ArrayList<>();
-        List<Trip> tripList = new ArrayList<>(utd.getFrequentCorrection(direction, 3));
+        List<Trip> tripList = new ArrayList<>(utd.getFrequentCorrection(direction, 10));
         tripList.forEach(dt -> {if (!correctionList.contains(dt.getCorrection())) {
                 				correctionList.add(dt.getCorrection());
             					}
