@@ -9,8 +9,12 @@ import java.util.StringTokenizer;
 
 import org.hibernate.SessionFactory;
 
+import datasource.DAOException;
 import datasource.TripData;
 import datasource.entity.Thing;
+import datasource.entity.TripEntity;
+import datasource.entity.TripTest;
+import datasource.entity.UserTripEntity;
 
 
 
@@ -18,33 +22,34 @@ public class PreparationToTrip {
 
     //Переменные класса
 	Integer userID;													//ID пользователя из Telegram
-	//private UserTripsData utd = new UserTripsData();				//Класс для работы с БД
-	//private Stage stage;                                            //Этапы работы с ботом
-	//private Map<String, Command> commandList = new HashMap<>();     //Список управляющих команд
-    //private List<Thing> selectedThingsList = new ArrayList<>();     //Список выбранных вещей
-    //private List<Thing> tookThingsList = new ArrayList<>();         //Список взятых вещей
-    //private List<String> nextList = new ArrayList<>();              //Список для последующего выбора
-    //private UserTrip userTrip;										//Класс описания поездки
-
+	//private UserTripEntity utd = new UserTripEntity();				//Класс для работы с БД
+	private Stage stage;                                            //Этапы работы с ботом
+	private Map<String, Command> commandList = new HashMap<>();     //Список управляющих команд
+    private List<Thing> selectedThingsList = new ArrayList<>();     //Список выбранных вещей
+    private List<Thing> tookThingsList = new ArrayList<>();         //Список взятых вещей
+    private List<String> nextList = new ArrayList<>();              //Список для последующего выбора
+    private UserTrip userTrip;										//Класс описания поездки
+    private String selectedDirection;
+    private String selectedCorrection;
 	
     private String answerErrorDB =  "Есть проблема :( Не удалось получить данные. " +
 									"\nРаботаю над исправлением. Приходи через минутку";
-//    private Comparator<Thing> categoryComparator = new Comparator<>() {   
-//        @Override
-//        public int compare(Thing o1, Thing o2) {
-//            return o1.getCategoryThing().compareTo(o2.getCategoryThing());
-//        }
-//    };
+    private Comparator<Thing> categoryComparator = new Comparator<Thing>() {   
+        @Override
+        public int compare(Thing o1, Thing o2) {
+            return o1.getCategory().compareTo(o2.getCategory());
+        }
+    };
 
     //Конструктор класса
     public PreparationToTrip(Integer userID) {
     	this.userID = userID;
-        //toStart();
-        //fillCommandList();
+        toStart();
+        fillCommandList();
     }
     
   
-/*
+
     //Этапы (стадии) сборов
     public enum Stage {
         DEFAULT_ANSWER,
@@ -66,50 +71,39 @@ public class PreparationToTrip {
         commandList.put("/pack",  new Command(this::goToPack));
         commandList.put("/menu",  new Command(this::showMenu));
     }
-*/
+
     //Метод для организации взаимодействия с классом бота
     public String getBotAnswer(String text) {
-//        String userText = text.trim().toLowerCase();
-//        if (userText.startsWith("/")) {
-//            if(commandList.containsKey(userText)) {
-//                return commandList.get(userText).answer.getAnswer();
-//            }else {
-//                return "Сожалею, но такой команды нет среди возможных :(\n" +
-//                        commandList.get("/help").answer.getAnswer();
-//            }
-//        }
-//        return getAnswerFromStage(text);
+        String userText = text.trim().toLowerCase();
+        if (userText.startsWith("/")) {
+            if(commandList.containsKey(userText)) {
+                return commandList.get(userText).answer.getAnswer();
+            }else {
+                return "Сожалею, но такой команды нет среди возможных :(\n" +
+                        commandList.get("/help").answer.getAnswer();
+            }
+        }
+        return getAnswerFromStage(text);
     	
-    	TripData td = new TripData();
-    	
-    	//return td.findById(4).toString();
-    	return "---";
+//    	TripData td = new TripData();
+//    	
+//    	//return td.findById(4).toString();
+//    	return "---";
     }
-/*
+
 	//Метод формирования ответа в зависимости от стадии
     private String getAnswerFromStage(String text) {
         switch (stage) {
-            case CHOOSE_DEFAULT_DIRECTION -> {
-                return doChooseDirectionStage(text);
-            }
-            case CHOOSE_CORRECTION -> {
-                return doChooseCorrectionStage(text);
-            }
-            case CHOOSE_THINGS -> {
-                return checkMenuSymbol(text);
-            }
-            case PACK_CONTROL -> {
-                return control(text);
-            }
-            case ERROR_DB -> {
-                return "Прошу простить, но что-то не так с базой данных :(" +
-                		"\nПопробуй еще раз через некоторое время.";
-            }
-            case DEFAULT_ANSWER -> {return "Что-то пошло не так." +
-                                    "\nПопробуй воспользоваться командами.\n" + doHelp();}
+            case CHOOSE_DEFAULT_DIRECTION:	return doChooseDirectionStage(text);
+            case CHOOSE_CORRECTION:		return doChooseCorrectionStage(text);
+            case CHOOSE_THINGS:		return checkMenuSymbol(text);
+            case PACK_CONTROL:	return control(text);
+            case ERROR_DB:	return "Прошу простить, но что-то не так с базой данных :(" +
+                					"\nПопробуй еще раз через некоторое время.";
+            case DEFAULT_ANSWER:	return "Что-то пошло не так." +
+                                    "\nПопробуй воспользоваться командами.\n" + doHelp();
+            default: return "Не понял тебя. Попробуй еще раз или используй команды:" + doHelp();
         }
-        return "Не понял тебя. Попробуй еще раз или используй команды:" +
-                doHelp();
     }
 
     private String doHelp(){
@@ -148,8 +142,9 @@ public class PreparationToTrip {
     }
 
     private String showSelectedThingsList(){
+    	
         if(selectedThingsList != null && 
-        	userTrip.getDirection() != null && 
+        		userTrip.getDirection() != null && 
         		userTrip.getCorrection() != null){
             return "Осталось сложить:\n" + getStringFromList(selectedThingsList) +
                     "\nСложено:\n" + getStringFromList(tookThingsList);
@@ -162,7 +157,8 @@ public class PreparationToTrip {
     private String goToPack(){
         if(stage == Stage.PACK_CONTROL || stage == Stage.CHOOSE_THINGS) {
             stage = Stage.PACK_CONTROL;
-            userTrip.setUserTripThings(selectedThingsList);
+            //userTrip.setUserTripThings(selectedThingsList);
+            //userTrip.getTrip().getKit().
             return "Готово! Давай ничего не забудем.\nПиши что сложено, а я буду вычеркивать.";
         }else{
             return "Команда предназначена для перехода к стадии укладывания вещей из стадии их выбора";
@@ -192,7 +188,7 @@ public class PreparationToTrip {
 	                "\nЕсли варианты не подходят, можешь ввести свой," +
 	                "написав \"+Куда\" (Например, \"+ К бабушке\")";
         }catch(DAOException  exc) {
-        	System.out.println(exc.getMessage());
+        	System.out.println(exc.getMessage());	// log message
         	return answerErrorDB;
         }
     }
@@ -211,7 +207,8 @@ public class PreparationToTrip {
         	try {
 	            nextList = getCorrectionList(text);
 	            stage = Stage.CHOOSE_CORRECTION;
-	            userTrip.setDirection(text);
+	            selectedDirection = text;
+	            //userTrip.setDirection(text);			//TODO
 	            return "Давай уточним. Предлагаю варианты:\n" + getStringFromList(nextList) +
 	                    "\nНо можешь ввести свой.";
         	}catch(DAOException exc) {
@@ -226,7 +223,8 @@ public class PreparationToTrip {
                     String direction = addDirection.toString().trim();
                     if (!nextList.contains(direction)) {
                         stage = Stage.CHOOSE_CORRECTION;
-                        userTrip.setDirection(direction);
+                        selectedDirection = direction;
+                        //userTrip.setDirection(direction);			//TODO
                         return "Давай уточним. Например: для \"Командировка\" можно написать \"Россия\"\n" +
                                 "Введи уточнение для направления";
                     } else return "Такое уже есть в списке";
@@ -239,16 +237,23 @@ public class PreparationToTrip {
     private String doChooseCorrectionStage(String text) {
         stage = Stage.CHOOSE_THINGS;
         if (!text.isBlank()) {
-            userTrip.setCorrection(text);
+        	selectedCorrection = text;
+            //userTrip.setCorrection(text);		//TODO
         } else {
-            userTrip.setCorrection("нет");
+        	selectedCorrection = "нет";
+            //userTrip.setCorrection("нет");	//TODO	
         }
         try{
-        	getSelectedThingsList(userTrip);
-	        nextList.clear();
-	        return "Отлично! Давай перейдем к вещам. Вот мой совет:\n" +
-	                getStringFromList(selectedThingsList) + "\n" +
-	                showMenu();
+//        	getSelectedThingsList(userTrip);
+        	if(selectedDirection != null && selectedCorrection != null) {
+        		getSelectedThingsList();
+        		nextList.clear();
+		        return "Отлично! Давай перейдем к вещам. Вот мой совет:\n" +
+		                getStringFromList(selectedThingsList) + "\n" +
+		                showMenu();
+	        }else {
+	        	return "Невозможно определить список вещей, т.к. не выбрано направление поездки";
+	        }
         }catch(DAOException exc) {		
         	System.out.println(exc.getMessage());
         	return answerErrorDB;			
@@ -259,7 +264,7 @@ public class PreparationToTrip {
     private String control(String text) {
         if (!text.isBlank()) {
             for (Thing thing : selectedThingsList) {
-                if (thing.getNameThing().trim().equalsIgnoreCase(text.trim())) {
+                if (thing.getName().trim().equalsIgnoreCase(text.trim())) {
                     moveTing(thing);
                     if (selectedThingsList.isEmpty()) {
                         return writeUserTrip();
@@ -275,17 +280,18 @@ public class PreparationToTrip {
     }
 
     private String writeUserTrip(){
-            try {
-            	utd.addNewUserTrip(userTrip);
-            	toStart();
-            } catch (DAOException exc) {
-            	System.out.println(exc.getMessage());
-                return "Всё собрано! Хорошей поездки!\n" +
-                        "Произошла ошибка записи\n" +
-                        "Чтобы начать новую, напиши /new";
-            }
-            return "Всё собрано! Хорошей поездки!\n" +
-                    "Чтобы начать новую, напиши /new";
+//            try {
+//            	utd.addNewUserTrip(userTrip);
+//            	toStart();
+//            } catch (DAOException exc) {
+//            	System.out.println(exc.getMessage());
+//                return "Всё собрано! Хорошей поездки!\n" +
+//                        "Произошла ошибка записи\n" +
+//                        "Чтобы начать новую, напиши /new";
+//            }
+//            return "Всё собрано! Хорошей поездки!\n" +
+//                    "Чтобы начать новую, напиши /new";
+    	return "метод writeUserTrip()";
     }
 
     //Метод для перемещения вещи из списка собираемых в список собранных
@@ -353,7 +359,7 @@ public class PreparationToTrip {
             }
         } else {
             for (Thing thing : selectedThingsList) {                //Удаление по имени вещи
-                if (thing.getNameThing().trim().equalsIgnoreCase(deleteThingName)) {
+                if (thing.getName().trim().equalsIgnoreCase(deleteThingName)) {
                     selectedThingsList.remove(thing);
                     selectedThingsList.sort(categoryComparator);
                     return true;
@@ -375,26 +381,34 @@ public class PreparationToTrip {
     }
 
     //Список вещей соответствующих запросу
-    private void getSelectedThingsList(UserTrip userTrip) throws DAOException {
+    private void getSelectedThingsList() throws DAOException {
+    	
+//    private void getSelectedThingsList(UserTrip userTrip) throws DAOException {
         selectedThingsList.clear();
-        selectedThingsList = utd.getThingsList(userTrip.getDirection(),
-        										userTrip.getCorrection());
-        selectedThingsList.sort(new Comparator<Thing>() {   //Сортировка по количеству использования в поездках
-            @Override
-            public int compare(Thing o1, Thing o2) {
-                if (!o1.getCategoryThing().equals(o2.getCategoryThing())) {
-                    return o1.getCategoryThing().compareTo(o2.getCategoryThing());
-                } else {
-                    return Integer.compare(o2.usesCount, o1.usesCount);
-                }
-            }
-        });
+        selectedThingsList = new TripData().getThingsList(selectedDirection, selectedCorrection);
+        
+//        selectedThingsList = utd.getThingsList(userTrip.getDirection(),
+//        										userTrip.getCorrection());
+//        selectedThingsList.sort(new Comparator<Thing>() {   //Сортировка по количеству использования в поездках
+//            @Override
+//            public int compare(Thing o1, Thing o2) {
+//                if (!o1.getCategory().equals(o2.getCategory())) {
+//                    return o1.getCategory().compareTo(o2.getCategory());
+//                } else {
+//                    return Integer.compare(o2.usesCount, o1.usesCount);
+//                }
+//            }
+//        });
     }
     
     //Список начальных вариантов поездок
     private List<String> getDirectionList() throws DAOException {
         List<String> directionList = new ArrayList<>();
-        List<Trip> tripList = new ArrayList<>(utd.getFrequentDirection(10));
+        
+        List<TripEntity> tripList = new ArrayList<TripEntity>(
+        		new TripData().getFrequentDirection(2));
+        
+//        List<Trip> tripList = new ArrayList<>(utd.getFrequentDirection(10));
         tripList.forEach(dt -> {if (!directionList.contains(dt.getDirection())) {
                 				directionList.add(dt.getDirection());
             					}
@@ -405,7 +419,12 @@ public class PreparationToTrip {
     //Формирование списка уточнений. Зависит от выбранной поездки
     private List<String> getCorrectionList(String direction) throws DAOException {
         List<String> correctionList = new ArrayList<>();
-        List<Trip> tripList = new ArrayList<>(utd.getFrequentCorrection(direction, 10));
+        
+        List<TripEntity> tripList = new ArrayList<TripEntity>(
+        		new TripData().getFrequentCorrection(direction, 2));
+        
+        
+//        List<Trip> tripList = new ArrayList<>(utd.getFrequentCorrection(direction, 10));
         tripList.forEach(dt -> {if (!correctionList.contains(dt.getCorrection())) {
                 				correctionList.add(dt.getCorrection());
             					}
@@ -440,5 +459,5 @@ public class PreparationToTrip {
     interface Answer {
         String getAnswer();
     }
-*/
+
 }

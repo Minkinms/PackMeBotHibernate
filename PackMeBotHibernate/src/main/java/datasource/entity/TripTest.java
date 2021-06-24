@@ -22,7 +22,7 @@ import javax.persistence.Table;
 
 @Entity 
 @Table(name="test_trips")
-public class Trip {
+public class TripTest {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,10 +52,10 @@ public class Trip {
 	
 //	public int useCount; 		// Количество использований направления
 
-	public Trip() {
+	public TripTest() {
 	}
 
-	public Trip(String direction, String correction) {
+	public TripTest(String direction, String correction) {
 		this.direction = direction;
 		this.correction = correction;
 	}
@@ -122,9 +122,9 @@ public class Trip {
 	public boolean equals(Object o) {
 		if (this == o)
 			return true;
-		if (!(o instanceof Trip))
+		if (!(o instanceof TripTest))
 			return false;
-		Trip trip = (Trip) o;
+		TripTest trip = (TripTest) o;
 		return getDirection().equals(trip.getDirection()) && getCorrection().equals(trip.getCorrection());
 	}
 

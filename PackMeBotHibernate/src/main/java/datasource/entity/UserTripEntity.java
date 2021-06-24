@@ -17,7 +17,6 @@ import javax.persistence.MapsId;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-import datasource.UserTripID;
 
 @Entity
 @Table(name = "test_user_trips")
@@ -34,25 +33,25 @@ public class UserTripEntity {
 	
 	@OneToOne
 	@JoinColumn(name = "trip_id")
-	private Trip trip;
+	private TripEntity trip;
 
 	public UserTripEntity() {
 	}
 	
-	
-	
 
-	public UserTripEntity(int userID, Trip tripID) {
+	public UserTripEntity(int userID, TripEntity tripID) {
 		this.userID = userID;
 		this.trip = tripID;
 	}
 
-
-
+	public UserTripEntity(int userID) {
+		this.userID = userID;
+	}
+	
+	
 	public int getUserTripID() {
 		return userTripID;
 	}
-
 
 
 	public void setUserTripID(int userTripID) {
@@ -60,20 +59,14 @@ public class UserTripEntity {
 	}
 
 
-
-
-	public Trip getTrip() {
+	public TripEntity getTrip() {
 		return trip;
 	}
 
 
-
-
-	public void setTrip(Trip trip) {
+	public void setTrip(TripEntity trip) {
 		this.trip = trip;
 	}
-
-
 
 
 	public int getUserID() {
@@ -84,11 +77,11 @@ public class UserTripEntity {
 		this.userID = userID;
 	}
 
-	public Trip getTripID() {
+	public TripEntity getTripID() {
 		return trip;
 	}
 
-	public void setTripID(Trip tripID) {
+	public void setTripID(TripEntity tripID) {
 		this.trip = tripID;
 	}
 
@@ -100,8 +93,6 @@ public class UserTripEntity {
 	}
 
 
-
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -111,8 +102,6 @@ public class UserTripEntity {
 		result = prime * result + userTripID;
 		return result;
 	}
-
-
 
 
 	@Override
@@ -136,11 +125,5 @@ public class UserTripEntity {
 		return true;
 	}
 
-
-
-
-
-	
-	
 	
 }

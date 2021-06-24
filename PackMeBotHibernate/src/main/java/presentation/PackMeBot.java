@@ -42,6 +42,8 @@ public class PackMeBot extends ProgwardsTelegramBot {
 			System.out.println(exc.getMessage());
 		}
 	}
+	
+	//TODO: Добавить закрытие sessionFactory в блок finalize
 		
 	@Override
 	public String processMessage(Integer userid, String text) {

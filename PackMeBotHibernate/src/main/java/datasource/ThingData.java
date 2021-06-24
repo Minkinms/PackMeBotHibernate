@@ -5,7 +5,7 @@ import org.hibernate.Session;
 
 
 import datasource.entity.Thing;
-import datasource.entity.Trip;
+import datasource.entity.TripTest;
 import presentation.PackMeBot;
 
 public class ThingData {

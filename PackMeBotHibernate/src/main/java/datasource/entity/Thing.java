@@ -32,14 +32,11 @@ public class Thing {
 	@ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE, 
 			CascadeType.REFRESH, CascadeType.DETACH})
 //	@ManyToMany(cascade = CascadeType.ALL)
-	
-//	@ManyToMany(cascade = {CascadeType.MERGE, 
-//			CascadeType.REFRESH, CascadeType.DETACH})
-	@JoinTable(name = "trip_use_thing",
+	@JoinTable(name = "kit_thing",
 				joinColumns = @JoinColumn(name = "thing_id"),
-				inverseJoinColumns = @JoinColumn(name = "trip_id")
+				inverseJoinColumns = @JoinColumn(name = "kit_id")
 	)
-	private List<Trip> tripList;
+	private List<KitThingsEntity> kitList;
 
 	public Thing() {
 	}
@@ -50,22 +47,16 @@ public class Thing {
 	}
 
 	
-	public void addTrip(Trip trip) {
-		if(tripList == null) {
-			tripList = new ArrayList<Trip>();
+	public void addKit(KitThingsEntity kit) {
+		if(kitList == null) {
+			kitList = new ArrayList<KitThingsEntity>();
 		}
-		tripList.add(trip);
+		kitList.add(kit);
 	}
 
-
 	
-	
-	public List<Trip> getTripList() {
-		return tripList;
-	}
-
-	public void setTripList(List<Trip> tripList) {
-		this.tripList = tripList;
+	public List<KitThingsEntity> getKitList() {
+		return kitList;
 	}
 
 	public int getId() {
@@ -96,4 +87,47 @@ public class Thing {
     public String toString() {
         return this.getName() + " (" + this.getCategory() + ")"; 
     }
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((category == null) ? 0 : category.hashCode());
+		result = prime * result + id;
+		result = prime * result + ((kitList == null) ? 0 : kitList.hashCode());
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Thing other = (Thing) obj;
+		if (category == null) {
+			if (other.category != null)
+				return false;
+		} else if (!category.equals(other.category))
+			return false;
+		if (id != other.id)
+			return false;
+		if (kitList == null) {
+			if (other.kitList != null)
+				return false;
+		} else if (!kitList.equals(other.kitList))
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		return true;
+	}
+    
+    
+    
 }
