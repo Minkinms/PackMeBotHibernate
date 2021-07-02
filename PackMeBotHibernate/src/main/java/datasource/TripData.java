@@ -6,24 +6,102 @@ import java.util.List;
 
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 
+import datasource.entity.Kit;
 import datasource.entity.Thing;
-import datasource.entity.TripEntity;
-import datasource.entity.UserTripEntity;
-import datasource.intefaces.TripDAO;
-import domain.Trip;
+import datasource.entity.Trip;
 import presentation.PackMeBot;
 
 
 public class TripData  {
-	//DBConnection dbConnection = new DBConnection();
-	//SessionFactory factory;
 	
-	public List<TripEntity> getFrequentDirection(int numberOfTrips) throws DAOException{
+	public Trip findOrAdd(String direction, String correction, List<Thing> thingList) throws DAOException {
+		System.out.println("Старт метода TripData.findOrAdd()");		//log message
+		Trip resultTrip = new Trip();
+		Kit kitThings = new KitThingsData().findOrAddKit(thingList);
+		Session session = null;
+		try{
+			session = PackMeBot.factory.getCurrentSession();
+			session.beginTransaction();
+			List<Trip> tripList = session.createQuery("from TripEntity where "
+					+ "direction = '" + direction + "' AND "
+					+ "correction = '" + correction + "'").getResultList();
+
+			for(Trip trip : tripList) {
+				if(trip.getKit().equals(kitThings) ) {
+					trip.upUseCount();
+					resultTrip = trip;
+					session.getTransaction().commit();
+					System.out.println("Выполнено. Метод TripData.findOrAdd()");		//log message
+					return resultTrip;
+				}
+			}
+			Trip tripToAdd = new Trip(direction,correction,kitThings);
+			tripToAdd.setUseCount(1);
+			session.save(tripToAdd);
+			resultTrip = tripToAdd;
+			session.getTransaction().commit();
+			System.out.println("Выполнено. Метод TripData.findOrAdd()");		//log message
+			return resultTrip;
+		}catch (HibernateException e){
+			if(session.getTransaction() != null ) {
+				session.getTransaction().rollback();
+			}
+			throw new DAOException("Error in TripData.findOrAdd()", e);
+		}finally{
+			session.close();
+		}
+	}
+	
+//	public void addTrip(String direction, String correction, List<Thing> thingList) throws DAOException {
+//		System.out.println("Старт метода addTrip()");		//log message
+//		//Для записи поездки нужен Kit для вещей
+//		//поэтому вначале определим его
+////		KitThingsData kitThingsData = new KitThingsData();
+//		KitThingsEntity kitThings = new KitThingsData().findOrAddKit(thingList);
+//		
+//		Session session = null;
+//		try{
+//			session = PackMeBot.factory.getCurrentSession();
+//			session.beginTransaction();
+////			resultList = session.createQuery("from TripEntity where direction = " + 
+////								"'" + direction + "'").getResultList();
+//			List<TripEntity> tripList = (List<TripEntity>) session.createQuery("from TripEntity where "
+//					+ "direction = '" + direction + "'"
+//					+ "correction = '" + correction + "'"
+//					+ "kit = '" + kitThings + "'");
+//			
+//			if(tripList.size() > 0) {
+//				tripList.get(0).upUseCount();
+//			}else {
+//				TripEntity tripToAdd = new TripEntity(direction,correction,kitThings);
+//				tripToAdd.setUseCount(1);
+//				session.save(tripToAdd);
+//			}
+//			session.getTransaction().commit();
+//			System.out.println("Выполнено. Метод getFrequentCorrection()");		//log message
+//	
+//		}catch (HibernateException e){
+//			if(session.getTransaction() != null ) {
+//				session.getTransaction().rollback();
+//			}
+//			throw new DAOException("Error in getFrequentCorrection()", e);
+//		}finally{
+//			session.close();
+//		}
+//	}
+
+	
+	
+	
+	
+	
+	
+	
+	public List<Trip> getFrequentDirection(int numberOfTrips) throws DAOException{
 		System.out.println("Старт метода getFrequentDirection()");		//log message
 		Session session = null;
-		List<TripEntity> resultList = new ArrayList<TripEntity>();
+		List<Trip> resultList = new ArrayList<Trip>();
 		try{
 			session = PackMeBot.factory.getCurrentSession();
 			session.beginTransaction();
@@ -49,10 +127,10 @@ public class TripData  {
 	}
 	
 	
-	public List<TripEntity> getFrequentCorrection(String direction, int numberOfTrips) throws DAOException{
+	public List<Trip> getFrequentCorrection(String direction, int numberOfTrips) throws DAOException{
 		System.out.println("Старт метода getFrequentCorrection()");		//log message
 		Session session = null;
-		List<TripEntity> resultList = new ArrayList<TripEntity>();
+		List<Trip> resultList = new ArrayList<Trip>();
 		try{
 			session = PackMeBot.factory.getCurrentSession();
 			session.beginTransaction();
@@ -82,14 +160,13 @@ public class TripData  {
 			System.out.println("Старт метода getThingsList()");		//log message
 		Session session = null;
 		List<Thing> resultList = new ArrayList<Thing>();
-		List<UsedThing> usedThingList = new ArrayList<UsedThing>();
 		try{
 			session = PackMeBot.factory.getCurrentSession();
 			session.beginTransaction();
-			List<TripEntity> tripList = session.createQuery("from TripEntity where " +
+			List<Trip> tripList = session.createQuery("from TripEntity where " +
 							"direction = '" + direction + "' " +
 							"AND correction = '" + correction + "'").getResultList();
-			resultList = getSortedList(usedThingList, tripList);
+			resultList = getSortedList(tripList);	//TODO: Возможно передать resultList как параметр и перенести метод в return
 			session.getTransaction().commit();
 				System.out.println("Выполнено. Метод getThingsList()");		//log message
 			return resultList;
@@ -104,9 +181,10 @@ public class TripData  {
 	}
 	
 	//Метод для получения списка вещей, сортированного по количеству использований
-	private List<Thing> getSortedList(List<UsedThing> usedThingList, List<TripEntity> tripList) {
+	private List<Thing> getSortedList(List<Trip> tripList) {
+		List<UsedThing> usedThingList = new ArrayList<UsedThing>();
 		List<Thing> resultList = new ArrayList<Thing>();	
-		for(TripEntity trip : tripList) {				
+		for(Trip trip : tripList) {				
 			for(Thing thing : trip.getKit().getThingList()) {
 				UsedThing usedThing = new UsedThing(thing);
 				if(usedThingList.contains(usedThing)) {
@@ -136,160 +214,6 @@ public class TripData  {
 		}
 		return resultList;
 	}	
-	
-	
-	
-//	
-//	@Override
-//	public Trip findById(int tripID) throws DAOException {
-//		System.out.println("Начало получения объекта \"Trip\" по ID");		//log message
-////		System.out.println("Started of obtaining object \"Trip\"");		//log message
-//		Session session = null;
-//		try{
-//			session = PackMeBot.factory.getCurrentSession();
-//			session.beginTransaction();
-//			Trip trip = session.get(Trip.class, tripID);
-//			session.getTransaction().commit();
-//			System.out.println("Выполнено");		//log message
-////			System.out.println("get Trip Done!");		//log message
-//			return trip;
-//		}catch (HibernateException e){
-//			if(session.getTransaction() != null ) {
-//				session.getTransaction().rollback();
-//			}
-//			throw new DAOException("Error in TripData.findById()", e);
-//		}finally{
-//			session.close();
-//		}
-//		
-//	}
-//	
-//	public Trip findByParameters(String direction, String correction) throws DAOException {
-//		System.out.println("Начало получения объекта \"Trip\" по параметру \"Направление\"");		//log message
-////		System.out.println("Started of obtaining object \"Trip\"");		//log message
-//		Session session = null;
-//		try{
-//			session = PackMeBot.factory.getCurrentSession();
-//			session.beginTransaction();
-//			List<Trip> trips = session.createQuery("from Trip " +
-//								"where direction = '" + direction + "' "+
-//								"AND correction = '" + correction + "' ")
-//					.getResultList();
-//			session.getTransaction().commit();
-//			System.out.println("Выполнено");		//log message
-////			System.out.println("get Trip Done!");		//log message
-//			if(trips != null && trips.size() > 0) {
-//				return trips.get(0);
-//			}else {
-//				return null;
-//			}
-//			
-//		}catch (HibernateException e){
-//			if(session.getTransaction() != null ) {
-//				session.getTransaction().rollback();
-//			}
-//			throw new DAOException("Error in TripData.findById()", e);
-//		}finally{
-//			session.close();
-//		}
-//		
-//	}
-//
-//	@Override
-//	public void addNewTrip(String direction, String correction) throws DAOException {
-//		System.out.println("Начало сохранения объекта \"Trip\"");	//log message
-////		System.out.println("Started of save object \"Trip\"");		//log message
-//		Session session = null;
-//		try{
-//			Trip trip = new Trip(direction, correction);
-//			session = PackMeBot.factory.getCurrentSession();
-//			session.beginTransaction();
-//			session.save(trip);
-//			session.getTransaction().commit();
-//			System.out.println("Выполнено");			//log message
-////			System.out.println("Save Trip Done!");		//log message
-////			return trip;
-//		}catch (Exception e){
-//			if(session.getTransaction() != null ) {
-//				session.getTransaction().rollback();
-//			}
-//			throw new DAOException("Error in TripData.addNewTrip()", e);
-//		}finally{
-//			session.close();
-//		}
-//	}
-//	
-//	@Override
-//	public void addNewTrip(Trip trip) throws DAOException {
-//		System.out.println("Начало сохранения объекта \"Trip\"");	//log message
-////		System.out.println("Started of save object \"Trip\"");		//log message
-//		Session session = null;
-//		try{
-//			session = PackMeBot.factory.getCurrentSession();
-//			session.beginTransaction();
-//			//session.save(trip);
-//			session.persist(trip);
-//			//session.saveOrUpdate(trip);
-//			session.getTransaction().commit();
-//			System.out.println("Выполнено");			//log message
-////			System.out.println("Save Trip Done!");		//log message
-////			return trip;
-//		}catch (Exception e){
-//			if(session.getTransaction() != null ) {
-//				session.getTransaction().rollback();
-//			}
-//			throw new DAOException("Error in TripData.addNewTrip()", e);
-//		}finally{
-//			session.close();
-//		}
-//	}
-//	
-//	public void findOrSave(Trip trip) throws DAOException {
-//		System.out.println("Начало поиска объекта \"Trip\"");	//log message
-////		System.out.println("Started of save object \"Trip\"");		//log message
-//		if(findByParameters(trip.getDirection(), trip.getCorrection()) == null) {
-//			System.out.println("Объект не найден. Начинаю записывать");
-//			addNewTrip(trip);
-//		}else {
-//			System.out.println("Объект найден");
-//		}
-//	}
-//	
-//	
-//	
-//	//public void addNewUserTrip(UserTrip userTrip) throws DAOException {
-//		public void addNewUserTrip(Trip trip, Thing thing) throws DAOException {
-//		System.out.println("Начало сохранения объекта \"UserTrip\"");	//log message
-////		System.out.println("Started of save object \"Trip\"");		//log message
-//		Session session = null;
-//		try{
-//			session = PackMeBot.factory.getCurrentSession();
-//			session.beginTransaction();
-//			//session.save(trip);
-//			//session.persist(userTrip);
-//			
-//			
-//			//session.save(trip);
-//			
-//			trip.addThing(thing);
-//			//session.save(thing);
-////			thing.addTrip(trip);
-//			
-//			session.getTransaction().commit();
-//			System.out.println("Выполнено");			//log message
-////			System.out.println("Save Trip Done!");		//log message
-////			return trip;
-//		}catch (Exception e){
-//			if(session.getTransaction() != null ) {
-//				session.getTransaction().rollback();
-//			}
-//			throw new DAOException("Error in TripData.addNewUserTrip()", e);
-//		}finally{
-//			if(session.isOpen()) {
-//				session.close();
-//			}
-//		}
-//	}
 
 }
 

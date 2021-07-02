@@ -36,7 +36,7 @@ public class Thing {
 				joinColumns = @JoinColumn(name = "thing_id"),
 				inverseJoinColumns = @JoinColumn(name = "kit_id")
 	)
-	private List<KitThingsEntity> kitList;
+	private List<Kit> kitList;
 
 	public Thing() {
 	}
@@ -47,15 +47,15 @@ public class Thing {
 	}
 
 	
-	public void addKit(KitThingsEntity kit) {
+	public void addKit(Kit kit) {
 		if(kitList == null) {
-			kitList = new ArrayList<KitThingsEntity>();
+			kitList = new ArrayList<Kit>();
 		}
 		kitList.add(kit);
 	}
 
 	
-	public List<KitThingsEntity> getKitList() {
+	public List<Kit> getKitList() {
 		return kitList;
 	}
 
@@ -93,37 +93,33 @@ public class Thing {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((category == null) ? 0 : category.hashCode());
-		result = prime * result + id;
-		result = prime * result + ((kitList == null) ? 0 : kitList.hashCode());
+//		result = prime * result + id;		//TODO: Убрать из определения id и Kit???
+//		result = prime * result + ((kitList == null) ? 0 : kitList.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass())	return false;
 		Thing other = (Thing) obj;
 		if (category == null) {
-			if (other.category != null)
+			if (other.getCategory() != null)
 				return false;
-		} else if (!category.equals(other.category))
+		} else if (!category.equals(other.getCategory()))
 			return false;
-		if (id != other.id)
-			return false;
-		if (kitList == null) {
-			if (other.kitList != null)
-				return false;
-		} else if (!kitList.equals(other.kitList))
-			return false;
+//		if (id != other.getId())	return false;
+//		if (kitList == null) {
+//			if (other.kitList != null)
+//				return false;
+//		} else if (!kitList.equals(other.kitList))
+//			return false;
 		if (name == null) {
-			if (other.name != null)
+			if (other.getName() != null)
 				return false;
-		} else if (!name.equals(other.name))
+		} else if (!name.equals(other.getName()))
 			return false;
 		return true;
 	}

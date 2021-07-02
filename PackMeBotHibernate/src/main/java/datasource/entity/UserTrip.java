@@ -1,26 +1,18 @@
 package datasource.entity;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
-import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.MapsId;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 
 @Entity
 @Table(name = "test_user_trips")
-public class UserTripEntity {
+public class UserTrip {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,18 +25,18 @@ public class UserTripEntity {
 	
 	@OneToOne
 	@JoinColumn(name = "trip_id")
-	private TripEntity trip;
+	private Trip trip;
 
-	public UserTripEntity() {
+	public UserTrip() {
 	}
 	
 
-	public UserTripEntity(int userID, TripEntity tripID) {
+	public UserTrip(int userID, Trip tripID) {
 		this.userID = userID;
 		this.trip = tripID;
 	}
 
-	public UserTripEntity(int userID) {
+	public UserTrip(int userID) {
 		this.userID = userID;
 	}
 	
@@ -59,12 +51,12 @@ public class UserTripEntity {
 	}
 
 
-	public TripEntity getTrip() {
+	public Trip getTrip() {
 		return trip;
 	}
 
 
-	public void setTrip(TripEntity trip) {
+	public void setTrip(Trip trip) {
 		this.trip = trip;
 	}
 
@@ -77,13 +69,13 @@ public class UserTripEntity {
 		this.userID = userID;
 	}
 
-	public TripEntity getTripID() {
-		return trip;
-	}
-
-	public void setTripID(TripEntity tripID) {
-		this.trip = tripID;
-	}
+//	public TripEntity getTripID() {
+//		return trip;
+//	}
+//
+//	public void setTripID(TripEntity tripID) {
+//		this.trip = tripID;
+//	}
 
 
 
@@ -112,7 +104,7 @@ public class UserTripEntity {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		UserTripEntity other = (UserTripEntity) obj;
+		UserTrip other = (UserTrip) obj;
 		if (trip == null) {
 			if (other.trip != null)
 				return false;

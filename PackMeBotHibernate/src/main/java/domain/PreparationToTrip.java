@@ -11,10 +11,10 @@ import org.hibernate.SessionFactory;
 
 import datasource.DAOException;
 import datasource.TripData;
+import datasource.UserTripData;
 import datasource.entity.Thing;
-import datasource.entity.TripEntity;
-import datasource.entity.TripTest;
-import datasource.entity.UserTripEntity;
+import datasource.entity.Trip;
+import datasource.entity.UserTrip;
 
 
 
@@ -28,7 +28,7 @@ public class PreparationToTrip {
     private List<Thing> selectedThingsList = new ArrayList<>();     //Список выбранных вещей
     private List<Thing> tookThingsList = new ArrayList<>();         //Список взятых вещей
     private List<String> nextList = new ArrayList<>();              //Список для последующего выбора
-    private UserTrip userTrip;										//Класс описания поездки
+//    private UserTrip userTrip;										//Класс описания поездки
     private String selectedDirection;
     private String selectedCorrection;
 	
@@ -142,10 +142,11 @@ public class PreparationToTrip {
     }
 
     private String showSelectedThingsList(){
-    	
-        if(selectedThingsList != null && 
-        		userTrip.getDirection() != null && 
-        		userTrip.getCorrection() != null){
+    	//TODO: Изменить условие отображения списка
+        if(selectedThingsList != null 
+//        		&& userTrip.getDirection() != null && 
+//        		userTrip.getCorrection() != null
+        		){
             return "Осталось сложить:\n" + getStringFromList(selectedThingsList) +
                     "\nСложено:\n" + getStringFromList(tookThingsList);
         }else {
@@ -199,7 +200,7 @@ public class PreparationToTrip {
         nextList.clear();
         selectedThingsList.clear();
         tookThingsList.clear();
-        userTrip = new UserTrip(this.userID);
+//        userTrip = new UserTrip(this.userID);
     }
 
     private String doChooseDirectionStage(String text) {	
@@ -280,18 +281,22 @@ public class PreparationToTrip {
     }
 
     private String writeUserTrip(){
-//            try {
+            try {
+            	new UserTripData().writeUserTrip(userID, 
+            									selectedDirection, 
+            									selectedCorrection, 
+            									tookThingsList);
 //            	utd.addNewUserTrip(userTrip);
-//            	toStart();
-//            } catch (DAOException exc) {
-//            	System.out.println(exc.getMessage());
-//                return "Всё собрано! Хорошей поездки!\n" +
-//                        "Произошла ошибка записи\n" +
-//                        "Чтобы начать новую, напиши /new";
-//            }
-//            return "Всё собрано! Хорошей поездки!\n" +
-//                    "Чтобы начать новую, напиши /new";
-    	return "метод writeUserTrip()";
+            	toStart();
+            } catch (DAOException exc) {
+            	System.out.println(exc.getMessage());
+                return "Всё собрано! Хорошей поездки!\n" +
+                        "Произошла ошибка записи\n" +
+                        "Чтобы начать новую, напиши /new";
+            }
+            return "Всё собрано! Хорошей поездки!\n" +
+                    "Чтобы начать новую, напиши /new";
+//    	return "метод writeUserTrip()";
     }
 
     //Метод для перемещения вещи из списка собираемых в список собранных
@@ -405,8 +410,8 @@ public class PreparationToTrip {
     private List<String> getDirectionList() throws DAOException {
         List<String> directionList = new ArrayList<>();
         
-        List<TripEntity> tripList = new ArrayList<TripEntity>(
-        		new TripData().getFrequentDirection(2));
+        List<Trip> tripList = new ArrayList<Trip>(
+        							new TripData().getFrequentDirection(10));
         
 //        List<Trip> tripList = new ArrayList<>(utd.getFrequentDirection(10));
         tripList.forEach(dt -> {if (!directionList.contains(dt.getDirection())) {
@@ -420,7 +425,7 @@ public class PreparationToTrip {
     private List<String> getCorrectionList(String direction) throws DAOException {
         List<String> correctionList = new ArrayList<>();
         
-        List<TripEntity> tripList = new ArrayList<TripEntity>(
+        List<Trip> tripList = new ArrayList<Trip>(
         		new TripData().getFrequentCorrection(direction, 2));
         
         
