@@ -11,7 +11,7 @@ import javax.persistence.Table;
 
 
 @Entity
-@Table(name = "test_user_trips")
+@Table(name = "user_trips")
 public class UserTrip {
 	
 	@Id
@@ -68,16 +68,6 @@ public class UserTrip {
 	public void setUserID(int userID) {
 		this.userID = userID;
 	}
-
-//	public TripEntity getTripID() {
-//		return trip;
-//	}
-//
-//	public void setTripID(TripEntity tripID) {
-//		this.trip = tripID;
-//	}
-
-
 
 	@Override
 	public String toString() {

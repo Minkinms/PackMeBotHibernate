@@ -15,7 +15,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
 @Entity 
-@Table(name="test_things")
+@Table(name="things")
 public class Thing {
 	
 	@Id
@@ -31,7 +31,6 @@ public class Thing {
 	
 	@ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE, 
 			CascadeType.REFRESH, CascadeType.DETACH})
-//	@ManyToMany(cascade = CascadeType.ALL)
 	@JoinTable(name = "kit_thing",
 				joinColumns = @JoinColumn(name = "thing_id"),
 				inverseJoinColumns = @JoinColumn(name = "kit_id")
@@ -93,8 +92,6 @@ public class Thing {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((category == null) ? 0 : category.hashCode());
-//		result = prime * result + id;		//TODO: Убрать из определения id и Kit???
-//		result = prime * result + ((kitList == null) ? 0 : kitList.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
 	}
@@ -110,12 +107,6 @@ public class Thing {
 				return false;
 		} else if (!category.equals(other.getCategory()))
 			return false;
-//		if (id != other.getId())	return false;
-//		if (kitList == null) {
-//			if (other.kitList != null)
-//				return false;
-//		} else if (!kitList.equals(other.kitList))
-//			return false;
 		if (name == null) {
 			if (other.getName() != null)
 				return false;

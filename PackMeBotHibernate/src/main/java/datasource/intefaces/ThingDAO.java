@@ -5,8 +5,9 @@ import datasource.entity.Thing;
 
 public interface ThingDAO {
 	
-	public Thing findById(int thingID) throws DAOException;
+	//Метод для поиска вещи в базе.
+	//Если вещь не найдена, она добавляется в базу как новая  
+	public Thing findOrAddThing(Thing thingToFind) throws DAOException;
 	
-	
-	
+
 }

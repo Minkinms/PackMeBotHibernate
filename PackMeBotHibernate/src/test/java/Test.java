@@ -9,7 +9,7 @@ import org.hibernate.cfg.Configuration;
 
 import datasource.DAOException;
 import datasource.DBConnection;
-import datasource.KitThingsData;
+import datasource.KitData;
 import datasource.TripData;
 import datasource.entity.Kit;
 import datasource.entity.Thing;
