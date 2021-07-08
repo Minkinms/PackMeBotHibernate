@@ -11,7 +11,7 @@ import org.telegram.telegrambots.ApiContextInitializer;
 
 import datasource.DBConnection;
 import ru.progwards.java1.telegrambot.ProgwardsTelegramBot;
-
+import domain.DomainException;
 import domain.PreparationToTrip;
 
 
@@ -47,10 +47,16 @@ public class PackMeBot extends ProgwardsTelegramBot {
 		
 	@Override
 	public String processMessage(Integer userid, String text) {
-		if (!users.containsKey(userid)) {
-			users.put(userid, new PreparationToTrip(userid));
+		try {
+			if (!users.containsKey(userid)) {
+				users.put(userid, new PreparationToTrip(userid));
+			}
+			return users.get(userid).getBotAnswer(text.trim());
+		} catch (DomainException e) {
+			System.out.println(e.getMessage());		//log message
+			return "Прошу простить, но возникла какая-то проблема.\n"
+					+ "Пойду разбираться. Возвращайтесь позже";
 		}
-		return users.get(userid).getBotAnswer(text.trim());
 	}
 
 	//For test without telegram 
