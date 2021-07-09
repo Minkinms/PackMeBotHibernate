@@ -78,7 +78,7 @@ public class ThingData implements ThingDAO{
 		}
 	}
 	
-	//Метод для поиска вещи по Id 
+	//Метод для получения вещи по Id 
 	private Thing getThing(int thingID) throws DAOException {
 		System.out.println("Старт метода ThingData.getThing()");		//log message
 		Session session = null;
@@ -87,7 +87,7 @@ public class ThingData implements ThingDAO{
 			session.beginTransaction();
 			Thing thing = session.get(Thing.class, thingID);
 			session.getTransaction().commit();
-			System.out.println("Выполнено. Метод ThingData.getThing(). Вещь не найдена");	//log message
+			System.out.println("Выполнено. Метод ThingData.getThing(). Вещь получена");	//log message
 			return thing;
 		}catch (HibernateException e){
 			if(session.getTransaction() != null ) {
