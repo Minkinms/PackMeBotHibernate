@@ -48,7 +48,7 @@ public class ThingDataTest {
 		}	
 	}
 
-	//Проверка функции для поиска или добавления (в случае отсутствия) в базу новой вещи
+	//Проверка функции для поиска или добавления (в случае отсутствия) в базу новой вещи.
 	//Вариант с вещью, отсутствующей в базе
 	@Test
 	public final void testNewThing() throws DAOException {
@@ -56,7 +56,7 @@ public class ThingDataTest {
 		assertEquals(newThing, thingActual);
 	}
 	
-	//Проверка функции для поиска или добавления (в случае отсутствия) в базу новой вещи
+	//Проверка функции для поиска или добавления (в случае отсутствия) в базу новой вещи.
 	//Вариант с вещью, присутствующей в базе
 	@Test
 	public final void testExistingThing() throws DAOException {

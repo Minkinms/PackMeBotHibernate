@@ -51,7 +51,6 @@ public class KitData implements KitDAO{
 	//Метод для сравнения списков вещей, в наборах и пользователя
 	private int compareListThing(List<Kit> kitList, List<Thing> listThing) {
 		System.out.println("Старт метода KitData.compareListThing()");		//log message
-		boolean kitFinded = false;
 		for(Kit kit : kitList) {
 			List<Thing> kitThings = new ArrayList<Thing>(kit.getThingList());
 			kitThings.sort(comparator);
@@ -86,7 +85,7 @@ public class KitData implements KitDAO{
 		ThingData thingData = new ThingData();
 		int kitThingsId;
 		for(Thing thing : listThing) {
-			kitThingsToAdd.addThing(thingData.findOrAddThing(thing));	//По ID достаю вещь из базы и добавляю к списку набора
+			kitThingsToAdd.addThing(thingData.findOrAddThing(thing));	//Поиск вещи из базе, добавление к списку набора
 		}
 		try{
 			session = PackMeBot.factory.getCurrentSession();
@@ -100,7 +99,7 @@ public class KitData implements KitDAO{
 			if(session.getTransaction() != null ) {
 				session.getTransaction().rollback();
 			}
-			throw new DAOException("Error in KitData.addKitThings()", e);
+			throw new DAOException("Error in KitData.addKit()", e);
 		}finally{
 			session.close();
 		}
@@ -108,20 +107,20 @@ public class KitData implements KitDAO{
 
 	//Метод для получения набора по Id
 	private Kit getKit(int id) throws DAOException {
-		System.out.println("Старт метода KitData.getKitThings()");		//log message
+		System.out.println("Старт метода KitData.getKit()");		//log message
 		Session session = null;
 		try{
 			session = PackMeBot.factory.getCurrentSession();
 			session.beginTransaction();
 			Kit kitThings = session.get(Kit.class, id);
 			session.getTransaction().commit();
-			System.out.println("Выполнено. Метод KitData.getKitThings()");		//log message
+			System.out.println("Выполнено. Метод KitData.getKit()");		//log message
 			return kitThings;
 		}catch (HibernateException e){
 			if(session.getTransaction() != null ) {
 				session.getTransaction().rollback();
 			}
-			throw new DAOException("Error in KitData.getKitThings()", e);
+			throw new DAOException("Error in KitData.getKit()", e);
 		}finally{
 			session.close();
 		}
