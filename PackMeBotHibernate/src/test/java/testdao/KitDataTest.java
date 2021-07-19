@@ -3,14 +3,12 @@ package testdao;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import datasource.DAOException;
@@ -42,8 +40,6 @@ public class KitDataTest {
 	static Thing existingThing2;
 	static Thing existingThing3;
 	static Thing existingThing4;
-	
-	static int kitId = 0;
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
