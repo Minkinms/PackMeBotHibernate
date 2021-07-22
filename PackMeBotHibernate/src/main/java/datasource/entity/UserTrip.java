@@ -6,7 +6,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 
@@ -23,7 +23,7 @@ public class UserTrip {
 	@Column(name = "user_id")
 	private int userID;
 	
-	@OneToOne
+	@ManyToOne
 	@JoinColumn(name = "trip_id")
 	private Trip trip;
 

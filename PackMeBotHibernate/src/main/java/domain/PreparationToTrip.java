@@ -8,10 +8,12 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import datasource.DAOException;
+import datasource.DBConnection;
 import datasource.TripData;
 import datasource.UserTripData;
 import datasource.entity.Thing;
 import datasource.entity.Trip;
+import presentation.PackMeBot;
 
 
 public class PreparationToTrip {
@@ -166,6 +168,7 @@ public class PreparationToTrip {
     private String createNewDirection(){
         toStart();
         try{
+        	PackMeBot.factory = DBConnection.getFactory();
         	nextList = getDirectionList();
         	stage = Stage.CHOOSE_DEFAULT_DIRECTION;
 	        return "Привет! Куда собираешься? Предлагаю популярные варианты:\n" +
@@ -265,6 +268,7 @@ public class PreparationToTrip {
             									selectedCorrection, 
             									tookThingsList);
             	toStart();
+            	PackMeBot.factory.close();
             } catch (DAOException exc) {
             	System.out.println(exc.getMessage());
                 return "Всё собрано! Хорошей поездки!\n" +

@@ -29,21 +29,17 @@ public class PackMeBot extends ProgwardsTelegramBot {
 
 	//Class variables
 	Map<Integer, PreparationToTrip> users = new HashMap<Integer, PreparationToTrip>();
-	
-	DBConnection dbConnection = new DBConnection();
 	public static SessionFactory factory;
 	
 	//Constructor
 	public PackMeBot() {
 		try{
-			factory = dbConnection.getFactory();
+			factory = DBConnection.getFactory();
 		}catch(HibernateException exc) {
 			System.out.println("Error connecting to the database" + "\n");	//log message
 			System.out.println(exc.getMessage());
 		}
 	}
-	
-	//TODO: Добавить закрытие sessionFactory в блок finalize
 		
 	@Override
 	public String processMessage(Integer userid, String text) {

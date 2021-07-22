@@ -13,7 +13,7 @@ import datasource.entity.UserTrip;
 
 public class DBConnection {
 	
-	public SessionFactory getFactory() throws HibernateException {
+	static public SessionFactory getFactory() throws HibernateException {
 		return new Configuration()
 				.configure("hibernate.cfg.xml")
 				.addAnnotatedClass(Trip.class)

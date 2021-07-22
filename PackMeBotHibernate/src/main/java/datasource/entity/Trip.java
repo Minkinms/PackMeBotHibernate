@@ -6,7 +6,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 @Entity 
@@ -24,7 +24,7 @@ public class Trip {
 	@Column(name="correction")
 	private String correction; 	// Уточнение направления поездки, "куда именно"
 	
-	@OneToOne
+	@ManyToOne
 	@JoinColumn(name="kit_id")
 	private Kit kit;	//Набор вещей в эту поездку
 	
